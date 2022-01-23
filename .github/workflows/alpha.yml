@@ -46,16 +46,11 @@ jobs:
         - name: 'Touch Azure Registery'
           run: az acr create -n ${{ env.CONTAINER_REGISTERY }} --sku Basic
 
-        - name: 'Get env Secrets'
-          run: |
-            MONGO_DB_URL=$(az keyvault secret show --name "MONGO-DB-URL" --vault-name ${{ env.KEY_VAULT }} --query "value")
-            echo 'MONGO_DB_URL='$MONGO_DB_URL >> $GITHUB_ENV
-            FSA_private_key_id=$(az keyvault secret show --name "FSA-private-key-id" --vault-name ${{ env.KEY_VAULT }} --query "value")
-            echo 'FSA_private_key_id='$FSA_private_key_id >> $GITHUB_ENV
-            FSA_private_key=$(az keyvault secret show --name "FSA-private-key" --vault-name ${{ env.KEY_VAULT }} --query "value")
-            echo 'FSA_private_key='$FSA_private_key >> $GITHUB_ENV
-            FSA_client_id=$(az keyvault secret show --name "FSA-client-id" --vault-name ${{ env.KEY_VAULT }} --query "value")
-            echo 'FSA_client_id='$FSA_client_id >> $GITHUB_ENV
+        - name: 'Get secrets from Azure'
+          uses: Azure/get-keyvault-secrets@v1
+          with:
+            keyvault: ${{ env.KEY_VAULT }}
+            secrets: 'MONGO-DB-URL,FSA-private-key-id,FSA-private-key,FSA-client-id'
         
         - name: 'Create .env'
           run: |

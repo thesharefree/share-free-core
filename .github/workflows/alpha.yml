@@ -1,0 +1,93 @@
+on:
+  push:
+    branches:
+      - master
+name: Build & Deploy to ACI
+env:
+  LOCATION: centralindia
+  RESOURCE_GROUP: ShareFreeAlphaARG
+  STORAGE_ACCOUNT: sharefreealphaasa
+  STORAGE_CONTAINER: sharefreealphaasc
+  CONTAINER_REGISTERY: sharefreealphaacr
+  KEY_VAULT: ShareFreeAlphaAKV
+  APP_NAME: share-free-core
+  APP_LABEL: sharefreecorealpha
+jobs:
+    build-and-deploy:
+        runs-on: ubuntu-latest
+        steps:
+
+        - name: 'Checkout GitHub Action'
+          uses: actions/checkout@master
+          
+        - name: 'Login to Azure'
+          uses: azure/login@v1
+          with:
+            creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+        - name: 'Set default location'
+          run: |
+            az configure --defaults location=${{ env.LOCATION }}
+            az configure --defaults group=${{ env.RESOURCE_GROUP }}
+        
+        - name: 'Touch Azure Storage Account'
+          run: az storage account create -n ${{ env.STORAGE_ACCOUNT }} --sku Standard_LRS
+
+        - name: 'Create Azure Storage SAS Token'
+          run: |
+            end_date=`date -u -d "30 days" '+%Y-%m-%dT%H:%MZ'`
+            SAS_TOKEN=$(az storage account generate-sas --permissions cdlruwap --account-name ${{ env.STORAGE_ACCOUNT }} --services bf --resource-types sco --expiry $end_date -o tsv)
+            echo $SAS_TOKEN
+            echo 'SAS_TOKEN='$SAS_TOKEN >> $GITHUB_ENV
+        
+        - name: 'Touch Azure Storage Container'
+          run: az storage container create -n ${{ env.STORAGE_CONTAINER }} --account-name ${{ env.STORAGE_ACCOUNT }} --sas-token ${{ env.SAS_TOKEN }}
+
+        - name: 'Touch Azure Registery'
+          run: az acr create -n ${{ env.CONTAINER_REGISTERY }} --sku Basic
+
+        - name: 'Get env Secrets'
+          run: |
+            MONGO_DB_URL=$(az keyvault secret show --name "MONGO-DB-URL" --vault-name ${{ env.KEY_VAULT }} --query "value")
+            echo 'MONGO_DB_URL='$MONGO_DB_URL >> $GITHUB_ENV
+            FSA_private_key_id=$(az keyvault secret show --name "FSA-private-key-id" --vault-name ${{ env.KEY_VAULT }} --query "value")
+            echo 'FSA_private_key_id='$FSA_private_key_id >> $GITHUB_ENV
+            FSA_private_key=$(az keyvault secret show --name "FSA-private-key" --vault-name ${{ env.KEY_VAULT }} --query "value")
+            echo 'FSA_private_key='$FSA_private_key >> $GITHUB_ENV
+            FSA_client_id=$(az keyvault secret show --name "FSA-client-id" --vault-name ${{ env.KEY_VAULT }} --query "value")
+            echo 'FSA_client_id='$FSA_client_id >> $GITHUB_ENV
+        
+        - name: 'Create .env'
+          run: |
+            touch .env
+            echo 'AZURE_STORAGE_ACCOUNT=${{ env.STORAGE_ACCOUNT }}' >> .env
+            echo 'AZURE_STORAGE_CONTAINER=${{ env.STORAGE_CONTAINER }}' >> .env
+            echo 'AZURE_STORAGE_SAS_KEY='${{ env.SAS_TOKEN }} >> .env
+            echo 'MONGO_DB_URL='${{ env.MONGO_DB_URL }} >> .env
+            echo 'FSA_private_key_id='${{ env.FSA_private_key_id }} >> .env
+            echo 'FSA_private_key='${{ env.FSA_private_key }} >> .env
+            echo 'FSA_client_id='${{ env.FSA_client_id }} >> .env
+        
+        - name: 'Build & Push'
+          uses: azure/docker-login@v1
+          with:
+            login-server: ${{ env.CONTAINER_REGISTERY }}.azurecr.io
+            username: ${{ secrets.AZURE_USERNAME }}
+            password: ${{ secrets.AZURE_PASSWORD }}
+        - run: |
+            docker build . -t ${{ env.APP_NAME }}:1.0.${{ github.run_number }}
+            docker tag ${{ env.APP_NAME }}:1.0.${{ github.run_number }} ${{ env.CONTAINER_REGISTERY }}.azurecr.io/builds/${{ env.APP_NAME }}:1.0.${{ github.run_number }}
+            docker push ${{ env.CONTAINER_REGISTERY }}.azurecr.io/builds/${{ env.APP_NAME }}:1.0.${{ github.run_number }}
+
+        - name: 'Deploy to Azure Container Instances'
+          uses: 'azure/aci-deploy@v1'
+          with:
+            resource-group: ${{ env.RESOURCE_GROUP }}
+            dns-name-label: ${{ env.APP_LABEL }}
+            image: ${{ env.CONTAINER_REGISTERY }}.azurecr.io/builds/${{ env.APP_NAME }}:1.0.${{ github.run_number }}
+            cpu: 1
+            memory: 1
+            registry-username: ${{ secrets.AZURE_USERNAME }}
+            registry-password: ${{ secrets.AZURE_PASSWORD }}
+            name: ${{ env.APP_LABEL }}
+            location: 'central india'

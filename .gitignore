@@ -37,3 +37,4 @@ lerna-debug.log*
 
 # configs local
 .env.local
+/src/auth/service-account.json

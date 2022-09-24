@@ -13,6 +13,7 @@ import { UserModule } from './modules/user/user.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: ['.env', '.env.local'],
     }),
     MongooseModule.forRoot(process.env['MONGO_DB_URL']),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),

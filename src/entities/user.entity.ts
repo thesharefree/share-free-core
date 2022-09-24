@@ -52,6 +52,9 @@ export class User extends Location {
 
     @Prop()
     registrationToken: string;
+
+    @Prop()
+    online: boolean;
 }
 
 export type UserDocument = User & Document;

@@ -50,13 +50,7 @@ jobs:
           run: |
             MONGO_DB_URL=$(az keyvault secret show --name "MONGO-DB-URL" --vault-name ${{ env.KEY_VAULT }} --query "value")
             echo 'MONGO_DB_URL='$MONGO_DB_URL >> $GITHUB_ENV
-            FSA_private_key_id=$(az keyvault secret show --name "FSA-private-key-id" --vault-name ${{ env.KEY_VAULT }} --query "value")
-            echo 'FSA_private_key_id='$FSA_private_key_id >> $GITHUB_ENV
-            FSA_private_key=$(az keyvault secret show --name "FSA-private-key" --vault-name ${{ env.KEY_VAULT }} --query "value")
-            echo 'FSA_private_key='$FSA_private_key >> $GITHUB_ENV
-            FSA_client_id=$(az keyvault secret show --name "FSA-client-id" --vault-name ${{ env.KEY_VAULT }} --query "value")
-            echo 'FSA_client_id='$FSA_client_id >> $GITHUB_ENV
-        
+
         - name: 'Create .env'
           run: |
             touch .env
@@ -64,10 +58,12 @@ jobs:
             echo 'AZURE_STORAGE_CONTAINER=${{ env.STORAGE_CONTAINER }}' >> .env
             echo 'AZURE_STORAGE_SAS_KEY='${{ env.SAS_TOKEN }} >> .env
             echo 'MONGO_DB_URL='${{ env.MONGO_DB_URL }} >> .env
-            echo 'FSA_private_key_id='${{ env.FSA_private_key_id }} >> .env
-            echo 'FSA_private_key='${{ env.FSA_private_key }} >> .env
-            echo 'FSA_client_id='${{ env.FSA_client_id }} >> .env
-        
+
+        - name: 'Create service-account.json'
+          run: |
+            touch src/auth/service-account.json
+            echo ${{ secrets.FIREBASE_SERVICE_ACCOUNT }} >> src/auth/service-account.json
+
         - name: 'Build & Push'
           uses: azure/docker-login@v1
           with:
@@ -91,3 +87,7 @@ jobs:
             registry-password: ${{ secrets.AZURE_PASSWORD }}
             name: ${{ env.APP_LABEL }}
             location: 'central india'
+
+        - name: logout
+          run: |
+            az logout

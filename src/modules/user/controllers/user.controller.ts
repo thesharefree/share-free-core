@@ -67,15 +67,6 @@ export class UserController {
     return this.userService.uploadPhoto(file, loggedInUser);
   }
 
-  @Auth('USER')
-  @Put('/updateRegistrationToken')
-  registrationToken(
-    @Req() request: Request,
-    @Query('registrationToken') registrationToken: string): Promise<void> {
-    const loggedInUser = request['user'];
-    return this.userService.updateRegistrationToken(registrationToken, loggedInUser.email);
-  }
-
   @Auth('ADMIN')
   @Get('/all')
   getAllUsers(): Promise<User[]> {

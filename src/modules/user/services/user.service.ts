@@ -98,15 +98,6 @@ export class UserService {
     });
   }
 
-  public async updateRegistrationToken(registrationToken: string, loggedInUser: string): Promise<void> {
-    const userResp = await this.userModel.findOne({ email: loggedInUser });
-    await this.userModel.updateOne({ _id: userResp._id }, {
-      registrationToken: registrationToken,
-      updatedBy: loggedInUser,
-      updatedDate: new Date()
-    });
-  }
-
   public async uploadPhoto(file: UploadedFileMetadata, loggedInUser: string): Promise<void> {
     const userResp = await this.userModel.findOne({ email: loggedInUser });
     const fileNameParts = file.originalname.split(".");

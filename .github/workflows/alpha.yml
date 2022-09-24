@@ -11,7 +11,7 @@ env:
   CONTAINER_REGISTERY: sharefreealphaacr
   KEY_VAULT: ShareFreeAlphaAKV
   APP_NAME: share-free-core
-  APP_LABEL: sharefreecorealpha
+  WEBAPP_NAME: sharefreecorealpha
 jobs:
     build-and-deploy:
         runs-on: ubuntu-latest
@@ -74,19 +74,11 @@ jobs:
             docker build . -t ${{ env.APP_NAME }}:1.0.${{ github.run_number }}
             docker tag ${{ env.APP_NAME }}:1.0.${{ github.run_number }} ${{ env.CONTAINER_REGISTERY }}.azurecr.io/builds/${{ env.APP_NAME }}:1.0.${{ github.run_number }}
             docker push ${{ env.CONTAINER_REGISTERY }}.azurecr.io/builds/${{ env.APP_NAME }}:1.0.${{ github.run_number }}
-
-        - name: 'Deploy to Azure Container Instances'
-          uses: 'azure/aci-deploy@v1'
+        
+        - uses: azure/webapps-deploy@v2
           with:
-            resource-group: ${{ env.RESOURCE_GROUP }}
-            dns-name-label: ${{ env.APP_LABEL }}
-            image: ${{ env.CONTAINER_REGISTERY }}.azurecr.io/builds/${{ env.APP_NAME }}:1.0.${{ github.run_number }}
-            cpu: 1
-            memory: 1
-            registry-username: ${{ secrets.AZURE_USERNAME }}
-            registry-password: ${{ secrets.AZURE_PASSWORD }}
-            name: ${{ env.APP_LABEL }}
-            location: 'central india'
+            app-name: ${{ env.WEBAPP_NAME }}
+            images: ${{ env.CONTAINER_REGISTERY }}.azurecr.io/builds/${{ env.APP_NAME }}:1.0.${{ github.run_number }}
 
         - name: logout
           run: |

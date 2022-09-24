@@ -25,23 +25,23 @@ export class MessageController {
     return this.messageService.loadChats(loggedInUser.email);
   }
 
-  @Get('/chatsTest')
-  loadChatsTest(): Promise<any[]> {
-    return this.messageService.loadChats('sharma.vikashkr@gmail.com');
-  }
+  // @Get('/chatsTest')
+  // loadChatsTest(): Promise<any[]> {
+  //   return this.messageService.loadChats('sharma.vikashkr@gmail.com');
+  // }
 
-  @Auth('USER')
-  @Post('/send')
-  sendMessage(
-    @Req() request: Request,
-    @Body() message: Message): Promise<void> {
-    const loggedInUser = request['user'];
-    return this.messageService.sendMessage(message, loggedInUser.email);
-  }
+  // @Auth('USER')
+  // @Post('/send')
+  // sendMessage(
+  //   @Req() request: Request,
+  //   @Body() message: Message): Promise<void> {
+  //   const loggedInUser = request['user'];
+  //   return this.messageService.sendMessage(message, loggedInUser.email);
+  // }
 
-  @Post('/test')
-  testMessage(
-    @Body() message: Message): Promise<void> {
-    return this.messageService.sendMessage(message, 'sharma.vikashkr@gmail.com');
-  }
+  // @Post('/test')
+  // testMessage(
+  //   @Body() message: Message): Promise<void> {
+  //   return this.messageService.sendMessage(message, 'sharma.vikashkr@gmail.com');
+  // }
 }

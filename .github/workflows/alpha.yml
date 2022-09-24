@@ -17,41 +17,41 @@ jobs:
         runs-on: ubuntu-latest
         steps:
 
-        - name: 'Checkout GitHub Action'
+        - name: Checkout GitHub Action
           uses: actions/checkout@master
           
-        - name: 'Login to Azure'
+        - name: Login to Azure
           uses: azure/login@v1
           with:
             creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-        - name: 'Set default location'
+        - name: Set default location
           run: |
             az configure --defaults location=${{ env.LOCATION }}
             az configure --defaults group=${{ env.RESOURCE_GROUP }}
         
-        - name: 'Touch Azure Storage Account'
+        - name: Touch Azure Storage Account
           run: az storage account create -n ${{ env.STORAGE_ACCOUNT }} --sku Standard_LRS
 
-        - name: 'Create Azure Storage SAS Token'
+        - name: Create Azure Storage SAS Token
           run: |
             end_date=`date -u -d "30 days" '+%Y-%m-%dT%H:%MZ'`
             SAS_TOKEN=$(az storage account generate-sas --permissions cdlruwap --account-name ${{ env.STORAGE_ACCOUNT }} --services bf --resource-types sco --expiry $end_date -o tsv)
             echo $SAS_TOKEN
             echo 'SAS_TOKEN='$SAS_TOKEN >> $GITHUB_ENV
         
-        - name: 'Touch Azure Storage Container'
+        - name: Touch Azure Storage Container
           run: az storage container create -n ${{ env.STORAGE_CONTAINER }} --account-name ${{ env.STORAGE_ACCOUNT }} --sas-token ${{ env.SAS_TOKEN }}
 
-        - name: 'Touch Azure Registery'
+        - name: Touch Azure Registery
           run: az acr create -n ${{ env.CONTAINER_REGISTERY }} --sku Basic
 
-        - name: 'Get env Secrets'
+        - name: Get env secrets
           run: |
             MONGO_DB_URL=$(az keyvault secret show --name "MONGO-DB-URL" --vault-name ${{ env.KEY_VAULT }} --query "value")
             echo 'MONGO_DB_URL='$MONGO_DB_URL >> $GITHUB_ENV
 
-        - name: 'Create .env'
+        - name: Create .env
           run: |
             touch .env
             echo 'AZURE_STORAGE_ACCOUNT=${{ env.STORAGE_ACCOUNT }}' >> .env
@@ -59,12 +59,12 @@ jobs:
             echo 'AZURE_STORAGE_SAS_KEY='${{ env.SAS_TOKEN }} >> .env
             echo 'MONGO_DB_URL='${{ env.MONGO_DB_URL }} >> .env
 
-        - name: 'Create service-account.json'
+        - name: Create service-account.json
           run: |
             touch src/auth/service-account.json
-            echo ${{ secrets.FIREBASE_SERVICE_ACCOUNT }} >> src/auth/service-account.json
+            printf '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' >> src/auth/service-account.json
 
-        - name: 'Build & Push'
+        - name: Build & Push
           uses: azure/docker-login@v1
           with:
             login-server: ${{ env.CONTAINER_REGISTERY }}.azurecr.io

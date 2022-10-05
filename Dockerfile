@@ -1,11 +1,11 @@
-FROM node:14 AS builder
+FROM node:16-slim AS builder
 WORKDIR /app
 COPY ./package.json ./
-RUN npm install
+RUN npm install --force
 COPY . .
 RUN npm run build
 
-FROM node:14-alpine
+FROM node:16-alpine
 WORKDIR /app
 COPY --from=builder /app ./
 CMD ["npm", "run", "start:prod"]

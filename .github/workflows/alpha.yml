@@ -43,9 +43,6 @@ jobs:
         - name: Touch Azure Storage Container
           run: az storage container create -n ${{ env.STORAGE_CONTAINER }} --account-name ${{ env.STORAGE_ACCOUNT }} --sas-token ${{ env.SAS_TOKEN }}
 
-        - name: Touch Azure Registery
-          run: az acr create -n ${{ env.CONTAINER_REGISTERY }} --sku Basic
-
         - name: Get env secrets
           run: |
             MONGO_DB_URL=$(az keyvault secret show --name "MONGO-DB-URL" --vault-name ${{ env.KEY_VAULT }} --query "value")

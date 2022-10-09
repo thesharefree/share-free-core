@@ -58,7 +58,7 @@ export class OrganizationController {
     @Param('organizationId') organizationId: string,
     @Req() request: Request): Promise<void> {
     const loggedInUser = request['user'];
-    return this.organizationService.toggle(organizationId, loggedInUser.email);
+    return this.organizationService.toggle(organizationId, loggedInUser);
   }
 
   @Auth('USER')

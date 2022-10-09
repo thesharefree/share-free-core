@@ -3,7 +3,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Organization, OrganizationDocument } from 'src/entities/organization.entity';
-import { User, UserDocument } from 'src/entities/user.entity';
+import { Role, User, UserDocument } from 'src/entities/user.entity';
 
 @Injectable()
 export class OrganizationService {
@@ -83,12 +83,12 @@ export class OrganizationService {
     });
   }
 
-  public async toggle(organizationId: string, loggedInUser: string): Promise<void> {
+  public async toggle(organizationId: string, loggedInUser: User): Promise<void> {
     const extOrganization = await this.organizationModel.findById(organizationId);
     if (extOrganization == null) {
       throw new HttpException('Invalid Organization', 400);
     }
-    if (extOrganization.owner !== loggedInUser) {
+    if (extOrganization.owner !== loggedInUser.email && !loggedInUser.roles.includes(Role.ADMIN)) {
       throw new HttpException('You don\'t own this Organization', 400);
     }
     await this.organizationModel.updateOne({ _id: organizationId }, {

@@ -58,7 +58,7 @@ export class OrganizationService {
       city: organization.city,
       province: organization.province,
       country: organization.country,
-      updatedBy: loggedInUser,
+      updatedBy: loggedInUser.email,
       updatedDate: new Date()
     });
   }
@@ -93,6 +93,7 @@ export class OrganizationService {
     }
     await this.organizationModel.updateOne({ _id: organizationId }, {
       active: !extOrganization.active,
+      updatedBy: loggedInUser.email,
       updatedDate: new Date()
     });
   }

@@ -42,12 +42,12 @@ export class OrganizationService {
     return newOrganization;
   }
 
-  public async updateOrganization(organizationId: string, organization: Organization, loggedInUser: string): Promise<void> {
+  public async updateOrganization(organizationId: string, organization: Organization, loggedInUser: User): Promise<void> {
     const extOrganization = await this.organizationModel.findById(organizationId);
     if (extOrganization == null) {
       throw new HttpException('Invalid Organization', 400);
     }
-    if (extOrganization.owner !== loggedInUser) {
+    if (extOrganization.owner !== loggedInUser.email && !loggedInUser.roles.includes(Role.ADMIN)) {
       throw new HttpException('You don\'t own this Organization', 400);
     }
     await this.organizationModel.updateOne({ _id: organizationId }, {
@@ -63,9 +63,9 @@ export class OrganizationService {
     });
   }
 
-  public async uploadBanner(file: UploadedFileMetadata, organizationId: string, loggedInUser: string): Promise<void> {
+  public async uploadBanner(file: UploadedFileMetadata, organizationId: string, loggedInUser: User): Promise<void> {
     const extOrganization = await this.organizationModel.findById(organizationId);
-    if (extOrganization.owner !== loggedInUser) {
+    if (extOrganization.owner !== loggedInUser.email && !loggedInUser.roles.includes(Role.ADMIN)) {
       throw new HttpException('You don\'t own this Organization', 400);
     }
     const fileNameParts = file.originalname.split(".");
@@ -78,7 +78,7 @@ export class OrganizationService {
     console.log(JSON.stringify(storageUrl));
     await this.organizationModel.updateOne({ _id: extOrganization._id }, {
       banner: storageUrl,
-      updatedBy: loggedInUser,
+      updatedBy: loggedInUser.email,
       updatedDate: new Date()
     });
   }

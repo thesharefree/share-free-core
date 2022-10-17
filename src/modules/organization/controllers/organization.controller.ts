@@ -32,7 +32,7 @@ export class OrganizationController {
     @Req() request: Request,
     @Body() organization: Organization): Promise<void> {
     const loggedInUser = request['user'];
-    return this.organizationService.updateOrganization(organizationId, organization, loggedInUser.email);
+    return this.organizationService.updateOrganization(organizationId, organization, loggedInUser);
   }
 
   @Auth('USER')

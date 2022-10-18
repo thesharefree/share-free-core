@@ -15,7 +15,9 @@ import { MessageService } from './services/message.service';
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MongooseModule.forFeature([{ name: Message.name, schema: MessageSchema }]),
     MongooseModule.forFeature([{ name: Group.name, schema: GroupSchema }]),
-    MongooseModule.forFeature([{ name: UserGroupXref.name, schema: UserGroupXrefSchema }]),
+    MongooseModule.forFeature([
+      { name: UserGroupXref.name, schema: UserGroupXrefSchema },
+    ]),
   ],
   controllers: [MessageController],
   providers: [MessageService],

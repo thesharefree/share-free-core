@@ -5,10 +5,9 @@ import { Topic, TopicDocument } from 'src/entities/topic.entity';
 
 @Injectable()
 export class TopicService {
-
   constructor(
     @InjectModel(Topic.name) private readonly topicModel: Model<TopicDocument>,
-  ) { }
+  ) {}
 
   public async getTopic(topicId: string): Promise<Topic> {
     const topic = await this.topicModel.findById(topicId);
@@ -33,7 +32,10 @@ export class TopicService {
     await createdTopic.save();
   }
 
-  public async toggleTopicById(topicId: string, loggedInUser: string): Promise<Topic> {
+  public async toggleTopicById(
+    topicId: string,
+    loggedInUser: string,
+  ): Promise<Topic> {
     const topic = await this.topicModel.findById(topicId);
     if (topic == null) {
       throw new HttpException('Invalid Topic', 400);
@@ -41,7 +43,7 @@ export class TopicService {
     return await this.topicModel.findByIdAndUpdate(topicId, {
       active: !topic.active,
       updatedBy: loggedInUser,
-      updatedDate: new Date()
+      updatedDate: new Date(),
     });
   }
 }

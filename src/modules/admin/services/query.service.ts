@@ -5,10 +5,9 @@ import { Query, QueryDocument } from 'src/entities/query.entity';
 
 @Injectable()
 export class QueryService {
-
   constructor(
     @InjectModel(Query.name) private readonly queryModel: Model<QueryDocument>,
-  ) { }
+  ) {}
 
   public async getQuery(queryId: string): Promise<Query> {
     const query = await this.queryModel.findById(queryId);
@@ -33,7 +32,11 @@ export class QueryService {
     await createdQuery.save();
   }
 
-  public async updateQuery(queryId: string, query: Query, loggedInUser: string): Promise<Query> {
+  public async updateQuery(
+    queryId: string,
+    query: Query,
+    loggedInUser: string,
+  ): Promise<Query> {
     const queryExist = await this.queryModel.findById(queryId);
     if (queryExist == null) {
       throw new HttpException('Invalid Query', 400);
@@ -44,11 +47,14 @@ export class QueryService {
       optionType: query.optionType,
       options: query.options,
       updatedBy: loggedInUser,
-      updatedDate: new Date()
+      updatedDate: new Date(),
     });
   }
 
-  public async toggleQueryById(queryId: string, loggedInUser: string): Promise<Query> {
+  public async toggleQueryById(
+    queryId: string,
+    loggedInUser: string,
+  ): Promise<Query> {
     const query = await this.queryModel.findById(queryId);
     if (query == null) {
       throw new HttpException('Invalid Query', 400);
@@ -56,7 +62,7 @@ export class QueryService {
     return await this.queryModel.findByIdAndUpdate(queryId, {
       active: !query.active,
       updatedBy: loggedInUser,
-      updatedDate: new Date()
+      updatedDate: new Date(),
     });
   }
 }

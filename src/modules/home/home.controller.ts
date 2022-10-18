@@ -1,5 +1,16 @@
-import { AzureStorageService, UploadedFileMetadata } from '@nestjs/azure-storage';
-import { Controller, Get, Param, Post, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+  AzureStorageService,
+  UploadedFileMetadata,
+} from '@nestjs/azure-storage';
+import {
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { HomeService } from './home.service';
 
@@ -7,10 +18,14 @@ import { HomeService } from './home.service';
 export class HomeController {
   constructor(
     private readonly azureStorage: AzureStorageService,
-    private readonly homeService: HomeService) { }
+    private readonly homeService: HomeService,
+  ) {}
 
   @Get('/:message')
-  getHello(@Query('name') name: string, @Param('message') message: string): any {
+  getHello(
+    @Query('name') name: string,
+    @Param('message') message: string,
+  ): any {
     return this.homeService.getHello(name, message);
   }
 
@@ -24,5 +39,4 @@ export class HomeController {
     const storageUrl = await this.azureStorage.upload(file);
     console.log(JSON.stringify(storageUrl));
   }
-
 }

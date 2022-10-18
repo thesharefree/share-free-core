@@ -6,13 +6,11 @@ import { Request } from 'express';
 
 @Controller('/queries')
 export class QueryController {
-  constructor(private readonly queryService: QueryService) { }
+  constructor(private readonly queryService: QueryService) {}
 
   @Auth('ADMIN')
   @Post('/create')
-  createQuery(
-    @Req() request: Request,
-    @Body() query: Query): void {
+  createQuery(@Req() request: Request, @Body() query: Query): void {
     const loggedInUser = request['user'];
     this.queryService.createQuery(query, loggedInUser.email);
   }
@@ -34,16 +32,18 @@ export class QueryController {
   updateQueryById(
     @Req() request: Request,
     @Param('queryId') queryId: string,
-    @Body() query: Query): Promise<Query> {
+    @Body() query: Query,
+  ): Promise<Query> {
     const loggedInUser = request['user'];
     return this.queryService.updateQuery(queryId, query, loggedInUser.email);
   }
 
-  @Get('/toggle/:queryId')
+  @Put('/toggle/:queryId')
   @Auth('ADMIN')
   toggleQueryById(
     @Req() request: Request,
-    @Param('queryId') queryId: string): Promise<Query> {
+    @Param('queryId') queryId: string,
+  ): Promise<Query> {
     const loggedInUser = request['user'];
     return this.queryService.toggleQueryById(queryId, loggedInUser.email);
   }

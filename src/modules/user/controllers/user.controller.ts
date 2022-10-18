@@ -1,5 +1,17 @@
 import { UploadedFileMetadata } from '@nestjs/azure-storage';
-import { Body, Controller, Get, HttpException, Param, Post, Put, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpException,
+  Param,
+  Post,
+  Put,
+  Query,
+  Req,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
 import { Auth } from 'src/decorators/auth.decorator';
@@ -8,7 +20,7 @@ import { UserService } from '../services/user.service';
 
 @Controller('/users')
 export class UserController {
-  constructor(private readonly userService: UserService) { }
+  constructor(private readonly userService: UserService) {}
 
   @Auth('USER', 'ADMIN')
   @Get('/me')
@@ -18,9 +30,7 @@ export class UserController {
 
   @Auth('USER')
   @Post('/register')
-  createUser(
-    @Req() request: Request,
-    @Body() user: User): Promise<void> {
+  createUser(@Req() request: Request, @Body() user: User): Promise<void> {
     const loggedInUser = request['user'];
     if (loggedInUser.email != user.email && loggedInUser.phone != user.phone) {
       throw new HttpException('Operation not allowed', 400);
@@ -31,9 +41,7 @@ export class UserController {
 
   @Auth('ADMIN')
   @Post('/createAdmin')
-  createAdmin(
-    @Req() request: Request,
-    @Body() user: User): Promise<void> {
+  createAdmin(@Req() request: Request, @Body() user: User): Promise<void> {
     const loggedInUser = request['user'];
     user.roles = [Role.ADMIN];
     return this.userService.createAdmin(user, loggedInUser.email);
@@ -41,18 +49,14 @@ export class UserController {
 
   @Auth('USER')
   @Put('/update')
-  update(
-    @Req() request: Request,
-    @Body() user: User): Promise<void> {
+  update(@Req() request: Request, @Body() user: User): Promise<void> {
     const loggedInUser = request['user'];
     return this.userService.update(user, loggedInUser.email);
   }
 
   @Auth('USER', 'ADMIN')
   @Put('/addRole')
-  addRole(
-    @Req() request: Request,
-    @Query('role') role: string): Promise<void> {
+  addRole(@Req() request: Request, @Query('role') role: string): Promise<void> {
     const loggedInUser = request['user'];
     return this.userService.addRole(role, loggedInUser.email);
   }
@@ -62,7 +66,8 @@ export class UserController {
   @UseInterceptors(FileInterceptor('file'))
   uploadPhoto(
     @Req() request: Request,
-    @UploadedFile() file: UploadedFileMetadata): Promise<void> {
+    @UploadedFile() file: UploadedFileMetadata,
+  ): Promise<void> {
     const loggedInUser = request['user'];
     return this.userService.uploadPhoto(file, loggedInUser);
   }
@@ -80,10 +85,11 @@ export class UserController {
   }
 
   @Auth('ADMIN')
-  @Get('/toggle/:userId')
+  @Put('/toggle/:userId')
   toggleUserById(
     @Req() request: Request,
-    @Param('userId') userId: string): Promise<void> {
+    @Param('userId') userId: string,
+  ): Promise<void> {
     const loggedInUser = request['user'];
     return this.userService.toggleUserById(userId, loggedInUser.email);
   }

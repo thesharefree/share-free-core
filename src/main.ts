@@ -11,8 +11,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   //app.use(helmet());
   app.enableCors();
-  app.use(bodyParser.json({limit: '50mb'}));
-  app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
+  app.use(bodyParser.json({ limit: '50mb' }));
+  app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
   app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalGuards(new AuthGuard(new Reflector()));
   const options = new DocumentBuilder()

@@ -6,12 +6,16 @@ import { UserOrganizationService } from '../services/user-organization.service';
 
 @Controller('/user/organizations')
 export class UserOrganizationController {
-  constructor(private readonly userOrganizationService: UserOrganizationService) { }
+  constructor(
+    private readonly userOrganizationService: UserOrganizationService,
+  ) {}
 
   @Get()
   @Auth('USER')
   getUserOrganizations(@Req() request: Request): Promise<Organization[]> {
     const loggedInUser = request['user'];
-    return this.userOrganizationService.getUserOrganizations(loggedInUser.email);
+    return this.userOrganizationService.getUserOrganizations(
+      loggedInUser.email,
+    );
   }
 }

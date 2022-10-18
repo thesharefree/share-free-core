@@ -1,4 +1,12 @@
-import { Controller, Get, Req, Put, Query, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Req,
+  Put,
+  Query,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { Auth } from 'src/decorators/auth.decorator';
 import { Request } from 'express';
 import { User } from 'src/entities/user.entity';
@@ -6,13 +14,14 @@ import { GroupUserService } from '../services/group-user.service';
 
 @Controller('/group/users')
 export class GroupUserController {
-  constructor(private readonly groupUserService: GroupUserService) { }
+  constructor(private readonly groupUserService: GroupUserService) {}
 
   @Auth('USER')
   @Put('/askToJoin')
   askToJoin(
     @Req() request: Request,
-    @Query('groupId') groupIds: string): Promise<void> {
+    @Query('groupId') groupIds: string,
+  ): Promise<void> {
     const loggedInUser = request['user'];
     return this.groupUserService.askToJoin(groupIds, loggedInUser.email);
   }
@@ -21,15 +30,15 @@ export class GroupUserController {
   @Delete('/revokeRequest')
   revokeRequest(
     @Req() request: Request,
-    @Query('groupId') groupIds: string): Promise<void> {
+    @Query('groupId') groupIds: string,
+  ): Promise<void> {
     const loggedInUser = request['user'];
     return this.groupUserService.revokeRequest(groupIds, loggedInUser.email);
   }
 
   @Auth('USER')
   @Get('/pendingUsers')
-  pendingUsers(
-    @Query('groupId') groupIds: string): Promise<User[]> {
+  pendingUsers(@Query('groupId') groupIds: string): Promise<User[]> {
     return this.groupUserService.pendingUsers(groupIds);
   }
 
@@ -38,9 +47,14 @@ export class GroupUserController {
   addToGroup(
     @Req() request: Request,
     @Query('userId') userId: string,
-    @Query('groupId') groupIds: string): Promise<void> {
+    @Query('groupId') groupIds: string,
+  ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.groupUserService.addToGroup(userId, groupIds, loggedInUser.email);
+    return this.groupUserService.addToGroup(
+      userId,
+      groupIds,
+      loggedInUser.email,
+    );
   }
 
   @Auth('USER')
@@ -48,16 +62,22 @@ export class GroupUserController {
   removeFromGroup(
     @Req() request: Request,
     @Query('userId') userId: string,
-    @Query('groupId') groupId: string): Promise<void> {
+    @Query('groupId') groupId: string,
+  ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.groupUserService.removeFromGroup(userId, groupId, loggedInUser.email);
+    return this.groupUserService.removeFromGroup(
+      userId,
+      groupId,
+      loggedInUser.email,
+    );
   }
 
   @Auth('USER')
   @Delete('/leave')
   leaveGroup(
     @Req() request: Request,
-    @Query('groupId') groupId: string): Promise<void> {
+    @Query('groupId') groupId: string,
+  ): Promise<void> {
     const loggedInUser = request['user'];
     return this.groupUserService.leaveGroup(groupId, loggedInUser.email);
   }

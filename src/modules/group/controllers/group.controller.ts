@@ -1,5 +1,16 @@
 import { UploadedFileMetadata } from '@nestjs/azure-storage';
-import { Body, Controller, Get, Param, Post, Put, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+  Req,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
 import { Auth } from 'src/decorators/auth.decorator';
@@ -8,13 +19,11 @@ import { GroupService } from '../services/group.service';
 
 @Controller('/groups')
 export class GroupController {
-  constructor(private readonly groupService: GroupService) { }
+  constructor(private readonly groupService: GroupService) {}
 
   @Auth('USER')
   @Post('/create')
-  createGroup(
-    @Req() request: Request,
-    @Body() group: Group): Promise<Group> {
+  createGroup(@Req() request: Request, @Body() group: Group): Promise<Group> {
     const loggedInUser = request['user'];
     return this.groupService.createGroup(group, loggedInUser.email);
   }
@@ -24,7 +33,8 @@ export class GroupController {
   updateGroup(
     @Param('groupId') groupId: string,
     @Req() request: Request,
-    @Body() group: Group): Promise<void> {
+    @Body() group: Group,
+  ): Promise<void> {
     const loggedInUser = request['user'];
     return this.groupService.updateGroup(groupId, group, loggedInUser.email);
   }
@@ -35,7 +45,8 @@ export class GroupController {
   uploadBanner(
     @Req() request: Request,
     @Param('groupId') groupId: string,
-    @UploadedFile() file: UploadedFileMetadata): Promise<void> {
+    @UploadedFile() file: UploadedFileMetadata,
+  ): Promise<void> {
     const loggedInUser = request['user'];
     return this.groupService.uploadBanner(file, groupId, loggedInUser);
   }
@@ -50,7 +61,8 @@ export class GroupController {
   @Put('/toggle/:groupId')
   toggleGroup(
     @Param('groupId') groupId: string,
-    @Req() request: Request): Promise<void> {
+    @Req() request: Request,
+  ): Promise<void> {
     const loggedInUser = request['user'];
     return this.groupService.toggle(groupId, loggedInUser.email);
   }
@@ -59,7 +71,8 @@ export class GroupController {
   @Get('/token/:groupId')
   conferenceToken(
     @Param('groupId') groupId: string,
-    @Req() request: Request): Promise<string> {
+    @Req() request: Request,
+  ): Promise<string> {
     const loggedInUser = request['user'];
     return this.groupService.conferenceToken(groupId, loggedInUser.email);
   }
@@ -69,9 +82,9 @@ export class GroupController {
   reportGroup(
     @Param('groupId') groupId: string,
     @Query('category') category: string,
-    @Req() request: Request): Promise<void> {
+    @Req() request: Request,
+  ): Promise<void> {
     const loggedInUser = request['user'];
     return this.groupService.report(groupId, category, loggedInUser.email);
   }
-
 }

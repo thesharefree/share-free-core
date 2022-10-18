@@ -7,16 +7,21 @@ import { Query as QueryEntity } from 'src/entities/query.entity';
 
 @Controller('/user/answers')
 export class UserAnswerController {
-  constructor(private readonly userAnswerService: UserAnswerService) { }
+  constructor(private readonly userAnswerService: UserAnswerService) {}
 
   @Auth('USER')
   @Put('/update')
   updateAnswer(
     @Req() request: Request,
     @Query('queryId') queryId: string,
-    @Query('answer') answer: string): Promise<void> {
+    @Query('answer') answer: string,
+  ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.userAnswerService.updateAnswer(queryId, answer, loggedInUser.email);
+    return this.userAnswerService.updateAnswer(
+      queryId,
+      answer,
+      loggedInUser.email,
+    );
   }
 
   @Auth('USER')

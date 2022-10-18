@@ -2,23 +2,34 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { User, UserDocument } from 'src/entities/user.entity';
 import { defaultApp } from '../../../auth/firebaseAdmin';
 import { Group, GroupDocument } from 'src/entities/group.entity';
-import { Message, MessageDocument, RecipientType } from 'src/entities/message.entity';
-import { UserGroupXref, UserGroupXrefDocument } from 'src/entities/user-group-xref.entity';
+import {
+  Message,
+  MessageDocument,
+  RecipientType,
+} from 'src/entities/message.entity';
+import {
+  UserGroupXref,
+  UserGroupXrefDocument,
+} from 'src/entities/user-group-xref.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { messaging } from 'firebase-admin';
 
 @Injectable()
 export class MessageService {
-
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     @InjectModel(Group.name) private readonly groupModel: Model<GroupDocument>,
-    @InjectModel(UserGroupXref.name) private readonly userGroupXrefModel: Model<UserGroupXrefDocument>,
-    @InjectModel(Message.name) private readonly messageModel: Model<MessageDocument>,
-  ) { }
+    @InjectModel(UserGroupXref.name)
+    private readonly userGroupXrefModel: Model<UserGroupXrefDocument>,
+    @InjectModel(Message.name)
+    private readonly messageModel: Model<MessageDocument>,
+  ) {}
 
-  public async sendMessage(message: Message, loggedInUser: string): Promise<void> {
+  public async sendMessage(
+    message: Message,
+    loggedInUser: string,
+  ): Promise<void> {
     const user = await this.userModel.findOne({ email: loggedInUser });
     message.sender = user._id;
     message.senderName = user.name;
@@ -32,7 +43,7 @@ export class MessageService {
     await createdMessage.save();
     var messagePayload: messaging.MulticastMessage = {
       data: {
-        type: "CHAT",
+        type: 'CHAT',
         title: '',
         message: message.message,
         recipientId: message.recipientId,
@@ -40,7 +51,7 @@ export class MessageService {
         sender: user._id.toString(),
         senderName: user.name,
         createdBy: loggedInUser,
-        createdDate: message.createdDate.toISOString()
+        createdDate: message.createdDate.toISOString(),
       },
       // notification: {
       //   title: '',
@@ -55,20 +66,26 @@ export class MessageService {
       //   },
       //   priority: 'high'
       // },
-      tokens: []
+      tokens: [],
     };
     if (RecipientType.GROUP == message.recipientType) {
       const group = await this.groupModel.findById(message.recipientId);
       const owner = await this.userModel.findOne({ email: group.owner });
-      const xrefResp = await this.userGroupXrefModel.find({ groupId: group._id });
-      let userIds = xrefResp.map(xref => { return xref.userId; });
+      const xrefResp = await this.userGroupXrefModel.find({
+        groupId: group._id,
+      });
+      let userIds = xrefResp.map((xref) => {
+        return xref.userId;
+      });
       console.log(userIds);
       userIds.push(owner._id.toString());
       console.log(userIds);
-      userIds = userIds.filter(userId => userId != user._id.toString());
+      userIds = userIds.filter((userId) => userId != user._id.toString());
       console.log(userIds);
       const users = await this.userModel.where('_id').in(userIds);
-      const userTokens = users.map(user => { return user.registrationToken });
+      const userTokens = users.map((user) => {
+        return user.registrationToken;
+      });
       messagePayload.tokens = userTokens;
       messagePayload.data.title = group.name;
       //messagePayload.notification.title = group.name;
@@ -91,8 +108,8 @@ export class MessageService {
   }
 
   public async loadChats(loggedInUser: string): Promise<any[]> {
-    return this.myGroupChats(loggedInUser).then(chats => {
-      return this.joinedGroupChats(loggedInUser).then(joinedChats => {
+    return this.myGroupChats(loggedInUser).then((chats) => {
+      return this.joinedGroupChats(loggedInUser).then((joinedChats) => {
         return chats.concat(joinedChats);
       });
     });
@@ -100,59 +117,74 @@ export class MessageService {
 
   public async myGroupChats(loggedInUser: string): Promise<any[]> {
     const myGroups = await this.groupModel.find({ owner: loggedInUser });
-    return await Promise.all(myGroups.map(async group => {
-      const groupMessages = await this.messageModel.find({
-        recipientId: group._id,
-        recipientType: RecipientType.GROUP,
-        createdDate: {
-          $gte: group.createdDate
-        }
-      });
-      return {
-        'id': group._id,
-        'name': group.name,
-        'banner': group.banner,
-        'type': RecipientType.GROUP,
-        'messages': groupMessages
-      };
-    }));
+    return await Promise.all(
+      myGroups.map(async (group) => {
+        const groupMessages = await this.messageModel.find({
+          recipientId: group._id,
+          recipientType: RecipientType.GROUP,
+          createdDate: {
+            $gte: group.createdDate,
+          },
+        });
+        return {
+          id: group._id,
+          name: group.name,
+          banner: group.banner,
+          type: RecipientType.GROUP,
+          messages: groupMessages,
+        };
+      }),
+    );
   }
 
   public async joinedGroupChats(loggedInUser: string): Promise<any[]> {
     const user = await this.userModel.findOne({ email: loggedInUser });
-    const xrefResp = await this.userGroupXrefModel.find({ userId: user._id, active: true });
-    return await Promise.all(xrefResp.map(async xref => {
-      const group = await this.groupModel.findById(xref.groupId);
-      const groupMessages = await this.messageModel.find({
-        recipientId: group._id,
-        recipientType: RecipientType.GROUP,
-        createdDate: {
-          $gte: xref.createdDate
-        }
-      });
-      return {
-        'id': group._id,
-        'name': group.name,
-        'banner': group.banner,
-        'type': RecipientType.GROUP,
-        'messages': groupMessages
-      };
-    }));
+    const xrefResp = await this.userGroupXrefModel.find({
+      userId: user._id,
+      active: true,
+    });
+    return await Promise.all(
+      xrefResp.map(async (xref) => {
+        const group = await this.groupModel.findById(xref.groupId);
+        const groupMessages = await this.messageModel.find({
+          recipientId: group._id,
+          recipientType: RecipientType.GROUP,
+          createdDate: {
+            $gte: xref.createdDate,
+          },
+        });
+        return {
+          id: group._id,
+          name: group.name,
+          banner: group.banner,
+          type: RecipientType.GROUP,
+          messages: groupMessages,
+        };
+      }),
+    );
   }
 
-  public async loadMessages(recipientId: string, recipientType: string, loggedInUser: string): Promise<Message[]> {
+  public async loadMessages(
+    recipientId: string,
+    recipientType: string,
+    loggedInUser: string,
+  ): Promise<Message[]> {
     const user = await this.userModel.findOne({ email: loggedInUser });
     if (recipientType == RecipientType.GROUP) {
-      const xrefResp = await this.userGroupXrefModel.findOne({ groupId: recipientId, userId: user._id, active: true });
+      const xrefResp = await this.userGroupXrefModel.findOne({
+        groupId: recipientId,
+        userId: user._id,
+        active: true,
+      });
       if (xrefResp == null || !xrefResp.active) {
-        throw new HttpException('You don\'t belong in this group', 400);
+        throw new HttpException("You don't belong in this group", 400);
       }
       return await this.messageModel.find({
         recipientId: recipientId,
         recipientType: RecipientType.GROUP,
         createdDate: {
-          $gte: xrefResp.createdDate
-        }
+          $gte: xrefResp.createdDate,
+        },
       });
     } else {
       return await this.messageModel.find({
@@ -162,10 +194,10 @@ export class MessageService {
           {
             $or: [
               { $and: [{ recipientId: recipientId }, { sender: user._id }] },
-              { $and: [{ recipientId: user._id }, { sender: recipientId }] }
-            ]
-          }
-        ]
+              { $and: [{ recipientId: user._id }, { sender: recipientId }] },
+            ],
+          },
+        ],
       });
     }
   }
@@ -174,11 +206,11 @@ export class MessageService {
     const group = await this.groupModel.findById(groupId);
     var messagePayload: messaging.MulticastMessage = {
       data: {
-        type: "CONFERENCE",
-        title: group.name + " calling..",
+        type: 'CONFERENCE',
+        title: group.name + ' calling..',
         message: group.name,
         rtcToken: rtcToken,
-        groupId: groupId
+        groupId: groupId,
       },
       // notification: {
       //   title: 'New Conference Call for ' + group.name,
@@ -193,12 +225,16 @@ export class MessageService {
       //   },
       //   priority: 'high'
       // },
-      tokens: []
+      tokens: [],
     };
     const xrefResp = await this.userGroupXrefModel.find({ groupId: group._id });
-    let userIds = xrefResp.map(xref => { return xref.userId; });
+    let userIds = xrefResp.map((xref) => {
+      return xref.userId;
+    });
     const users = await this.userModel.where('_id').in(userIds);
-    const userTokens = users.map(user => { return user.registrationToken });
+    const userTokens = users.map((user) => {
+      return user.registrationToken;
+    });
     messagePayload.tokens = userTokens;
     try {
       await defaultApp.messaging().sendMulticast(messagePayload);

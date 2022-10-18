@@ -1,15 +1,14 @@
-import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { Audit } from "./audit";
+import { Audit } from './audit';
 
 @Schema()
 export class UserTopicXref extends Audit {
+  @Prop()
+  userId: string;
 
-    @Prop()
-    userId: string;
-
-    @Prop()
-    topicId: string;
+  @Prop()
+  topicId: string;
 }
 
 export type UserTopicXrefDocument = UserTopicXref & Document;

@@ -5,11 +5,15 @@ import { OrganizationGroupService } from '../services/organization-group.service
 
 @Controller('/organization/groups')
 export class OrganizationGroupController {
-  constructor(private readonly organizationGroupService: OrganizationGroupService) { }
+  constructor(
+    private readonly organizationGroupService: OrganizationGroupService,
+  ) {}
 
   @Auth('USER')
   @Get('/:organizationId')
-  getOrganizationGroups(@Param('organizationId') organizationId: string): Promise<Group[]> {
+  getOrganizationGroups(
+    @Param('organizationId') organizationId: string,
+  ): Promise<Group[]> {
     return this.organizationGroupService.getOrganizationGroups(organizationId);
   }
 }

@@ -1,4 +1,9 @@
-import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { PreauthMiddleware } from './auth/preauth.middleware';
@@ -21,7 +26,7 @@ import { UserModule } from './modules/user/user.module';
     AdminModule,
     UserModule,
     GroupModule,
-    OrganizationModule
+    OrganizationModule,
   ],
   controllers: [],
   providers: [],
@@ -29,7 +34,8 @@ import { UserModule } from './modules/user/user.module';
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(PreauthMiddleware).forRoutes({
-      path: '*', method: RequestMethod.ALL
+      path: '*',
+      method: RequestMethod.ALL,
     });
   }
 }

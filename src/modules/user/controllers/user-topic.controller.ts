@@ -6,13 +6,14 @@ import { UserTopicService } from '../services/user-topic.service';
 
 @Controller('/user/topics')
 export class UserTopicController {
-  constructor(private readonly userTopicService: UserTopicService) { }
+  constructor(private readonly userTopicService: UserTopicService) {}
 
   @Auth('USER')
   @Put('/assign')
   assignTopic(
     @Req() request: Request,
-    @Query('topicIds') topicIds: string): Promise<void> {
+    @Query('topicIds') topicIds: string,
+  ): Promise<void> {
     const loggedInUser = request['user'];
     return this.userTopicService.assignTopics(topicIds, loggedInUser.email);
   }

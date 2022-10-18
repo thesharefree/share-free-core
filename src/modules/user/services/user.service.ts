@@ -1,4 +1,7 @@
-import { AzureStorageService, UploadedFileMetadata } from '@nestjs/azure-storage';
+import {
+  AzureStorageService,
+  UploadedFileMetadata,
+} from '@nestjs/azure-storage';
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -7,11 +10,10 @@ import { defaultApp } from '../../../auth/firebaseAdmin';
 
 @Injectable()
 export class UserService {
-
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
-    private readonly azureStorage: AzureStorageService
-  ) { }
+    private readonly azureStorage: AzureStorageService,
+  ) {}
 
   public async getUser(loggedInUser: string): Promise<User> {
     const user = await this.userModel.findOne({ email: loggedInUser });
@@ -28,17 +30,18 @@ export class UserService {
       console.error('User already exists');
       throw new HttpException('User already exists', 400);
     } else {
-      defaultApp.auth().createUser({
-        email: user.email,
-        emailVerified: false,
-        password: 'password@123',
-        displayName: user.name,
-        disabled: false
-      })
+      defaultApp
+        .auth()
+        .createUser({
+          email: user.email,
+          emailVerified: false,
+          password: 'password@123',
+          displayName: user.name,
+          disabled: false,
+        })
         .then(async function (userRecord) {
           console.log('User created in Firebase:', userRecord.uid);
           await service.register(user, loggedInUser);
-
         })
         .catch(function (error) {
           console.error('Error creating user in Firebase:', error);
@@ -65,20 +68,23 @@ export class UserService {
 
   public async update(user: User, loggedInUser: string): Promise<void> {
     const userResp = await this.userModel.findOne({ email: loggedInUser });
-    await this.userModel.updateOne({ _id: userResp._id }, {
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      sex: user.sex,
-      intro: user.intro,
-      latitude: user.latitude,
-      longitude: user.longitude,
-      city: user.city,
-      province: user.province,
-      country: user.country,
-      updatedBy: loggedInUser,
-      updatedDate: new Date()
-    });
+    await this.userModel.updateOne(
+      { _id: userResp._id },
+      {
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        sex: user.sex,
+        intro: user.intro,
+        latitude: user.latitude,
+        longitude: user.longitude,
+        city: user.city,
+        province: user.province,
+        country: user.country,
+        updatedBy: loggedInUser,
+        updatedDate: new Date(),
+      },
+    );
   }
 
   public async addRole(role: string, loggedInUser: string): Promise<void> {
@@ -88,19 +94,28 @@ export class UserService {
     const userResp = await this.userModel.findOne({ email: loggedInUser });
     const userRoles = userResp.roles;
     if (userRoles.includes(Role[role])) {
-      throw new HttpException('Role already assigned to the user: ' + role, 400);
+      throw new HttpException(
+        'Role already assigned to the user: ' + role,
+        400,
+      );
     }
     userRoles.push(Role[role]);
-    await this.userModel.updateOne({ _id: userResp._id }, {
-      roles: userRoles,
-      updatedBy: loggedInUser,
-      updatedDate: new Date()
-    });
+    await this.userModel.updateOne(
+      { _id: userResp._id },
+      {
+        roles: userRoles,
+        updatedBy: loggedInUser,
+        updatedDate: new Date(),
+      },
+    );
   }
 
-  public async uploadPhoto(file: UploadedFileMetadata, loggedInUser: string): Promise<void> {
+  public async uploadPhoto(
+    file: UploadedFileMetadata,
+    loggedInUser: string,
+  ): Promise<void> {
     const userResp = await this.userModel.findOne({ email: loggedInUser });
-    const fileNameParts = file.originalname.split(".");
+    const fileNameParts = file.originalname.split('.');
     const extension = fileNameParts[fileNameParts.length - 1];
     file = {
       ...file,
@@ -108,11 +123,14 @@ export class UserService {
     };
     const storageUrl = await this.azureStorage.upload(file);
     console.log(JSON.stringify(storageUrl));
-    await this.userModel.updateOne({ _id: userResp._id }, {
-      photoUrl: storageUrl,
-      updatedBy: loggedInUser,
-      updatedDate: new Date()
-    });
+    await this.userModel.updateOne(
+      { _id: userResp._id },
+      {
+        photoUrl: storageUrl,
+        updatedBy: loggedInUser,
+        updatedDate: new Date(),
+      },
+    );
   }
 
   public async getAllUsers(): Promise<User[]> {
@@ -123,7 +141,10 @@ export class UserService {
     return await this.userModel.findById(userId);
   }
 
-  public async toggleUserById(userId: string, loggedInUser: string): Promise<void> {
+  public async toggleUserById(
+    userId: string,
+    loggedInUser: string,
+  ): Promise<void> {
     const user = await this.userModel.findById(userId);
     if (user == null) {
       throw new HttpException('Invalid User', 400);
@@ -131,8 +152,7 @@ export class UserService {
     await this.userModel.findByIdAndUpdate(userId, {
       active: !user.active,
       updatedBy: loggedInUser,
-      updatedDate: new Date()
+      updatedDate: new Date(),
     });
   }
-
 }

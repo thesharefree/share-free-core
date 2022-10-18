@@ -1,26 +1,25 @@
-import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { Audit } from "./audit";
+import { Audit } from './audit';
 
 @Schema()
 export class GroupAnswer extends Audit {
+  @Prop({
+    required: true,
+  })
+  groupId: string;
 
-    @Prop({
-        required: true
-    })
-    groupId: string;
+  @Prop({
+    required: true,
+  })
+  queryId: string;
 
-    @Prop({
-        required: true
-    })
-    queryId: string;
+  @Prop({
+    required: true,
+  })
+  answer: string;
 
-    @Prop({
-        required: true
-    })
-    answer: string;
-
-    queryStr: string;
+  queryStr: string;
 }
 
 export type GroupAnswerDocument = GroupAnswer & Document;

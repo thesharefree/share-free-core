@@ -6,7 +6,7 @@ import { UserGroupService } from '../services/user-group.service';
 
 @Controller('/user/groups')
 export class UserGroupController {
-  constructor(private readonly userGroupService: UserGroupService) { }
+  constructor(private readonly userGroupService: UserGroupService) {}
 
   @Get()
   @Auth('USER')

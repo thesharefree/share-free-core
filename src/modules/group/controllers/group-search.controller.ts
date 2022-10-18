@@ -6,12 +6,11 @@ import { Request } from 'express';
 
 @Controller('/group/search')
 export class GroupSearchController {
-  constructor(private readonly groupSearchService: GroupSearchService) { }
+  constructor(private readonly groupSearchService: GroupSearchService) {}
 
   @Auth('USER')
   @Get()
-  searchGroups(
-    @Req() request: Request): Promise<Group[]> {
+  searchGroups(@Req() request: Request): Promise<Group[]> {
     const loggedInUser = request['user'];
     return this.groupSearchService.searchGroups(loggedInUser.email);
   }

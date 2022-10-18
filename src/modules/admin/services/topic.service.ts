@@ -1,12 +1,16 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { GroupTopicXrefDocument } from 'src/entities/group-topic-xref.entity';
+import { TopicQueryXrefDocument } from 'src/entities/topic-query-xref.entity';
 import { Topic, TopicDocument } from 'src/entities/topic.entity';
 
 @Injectable()
 export class TopicService {
   constructor(
     @InjectModel(Topic.name) private readonly topicModel: Model<TopicDocument>,
+    private readonly groupTopicXrefModel: Model<GroupTopicXrefDocument>,
+    private readonly topicQueryXrefModel: Model<TopicQueryXrefDocument>,
   ) {}
 
   public async getTopic(topicId: string): Promise<Topic> {
@@ -44,6 +48,18 @@ export class TopicService {
       active: !topic.active,
       updatedBy: loggedInUser,
       updatedDate: new Date(),
+    });
+  }
+
+  public async deleteTopic(topicId: string): Promise<void> {
+    const topic = await this.topicModel.findById(topicId);
+    if (topic == null) {
+      throw new HttpException('Invalid Topic', 400);
+    }
+    await this.topicQueryXrefModel.deleteMany({ topicId: topicId });
+    await this.groupTopicXrefModel.deleteMany({ topicId: topicId });
+    await this.topicModel.findOneAndDelete({
+      _id: topicId,
     });
   }
 }

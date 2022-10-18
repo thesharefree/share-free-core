@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Body, Req, Put } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, Req, Put, Delete } from '@nestjs/common';
 import { Auth } from 'src/decorators/auth.decorator';
 import { QueryService } from '../services/query.service';
 import { Query } from 'src/entities/query.entity';
@@ -25,6 +25,12 @@ export class QueryController {
   @Auth('USER', 'ADMIN')
   getQuery(@Param('queryId') queryId: string): Promise<Query> {
     return this.queryService.getQuery(queryId);
+  }
+
+  @Delete('/:queryId')
+  @Auth('ADMIN')
+  deleteQuery(@Param('queryId') queryId: string): Promise<void> {
+    return this.queryService.deleteQuery(queryId);
   }
 
   @Put('/update/:queryId')

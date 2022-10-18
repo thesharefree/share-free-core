@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Post,
-  Body,
-  Query,
-  Req,
-  Put,
-} from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, Req, Put, Delete } from '@nestjs/common';
 import { Auth } from 'src/decorators/auth.decorator';
 import { TopicService } from '../services/topic.service';
 import { Topic } from 'src/entities/topic.entity';
@@ -34,6 +25,12 @@ export class TopicController {
   @Get('/:topicId')
   getTopic(@Param('topicId') topicId: string): Promise<Topic> {
     return this.topicService.getTopic(topicId);
+  }
+
+  @Auth('ADMIN')
+  @Delete('/:topicId')
+  deleteTopic(@Param('topicId') topicId: string): Promise<void> {
+    return this.topicService.deleteTopic(topicId);
   }
 
   @Auth('ADMIN')

@@ -2,11 +2,13 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Query, QueryDocument } from 'src/entities/query.entity';
+import { TopicQueryXrefDocument } from 'src/entities/topic-query-xref.entity';
 
 @Injectable()
 export class QueryService {
   constructor(
     @InjectModel(Query.name) private readonly queryModel: Model<QueryDocument>,
+    private readonly topicQueryXrefModel: Model<TopicQueryXrefDocument>,
   ) {}
 
   public async getQuery(queryId: string): Promise<Query> {
@@ -64,5 +66,14 @@ export class QueryService {
       updatedBy: loggedInUser,
       updatedDate: new Date(),
     });
+  }
+
+  public async deleteQuery(queryId: string): Promise<void> {
+    const topic = await this.queryModel.findById(queryId);
+    if (topic == null) {
+      throw new HttpException('Invalid Query', 400);
+    }
+    await this.topicQueryXrefModel.deleteMany({ queryId: queryId });
+    await this.queryModel.findOneAndDelete({ _id: queryId });
   }
 }

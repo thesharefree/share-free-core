@@ -1,6 +1,10 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Faq, FaqSchema } from 'src/entities/faq.entity';
+import {
+  GroupTopicXref,
+  GroupTopicXrefSchema,
+} from 'src/entities/group-topic-xref.entity';
 import { Query, QuerySchema } from 'src/entities/query.entity';
 import {
   TopicQueryXref,
@@ -21,6 +25,9 @@ import { TopicService } from './services/topic.service';
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MongooseModule.forFeature([{ name: Topic.name, schema: TopicSchema }]),
     MongooseModule.forFeature([{ name: Query.name, schema: QuerySchema }]),
+    MongooseModule.forFeature([
+      { name: GroupTopicXref.name, schema: GroupTopicXrefSchema },
+    ]),
     MongooseModule.forFeature([
       { name: TopicQueryXref.name, schema: TopicQueryXrefSchema },
     ]),

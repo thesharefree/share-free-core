@@ -2,13 +2,13 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Query, QueryDocument } from 'src/entities/query.entity';
-import { TopicQueryXrefDocument } from 'src/entities/topic-query-xref.entity';
+import { TopicQueryXref, TopicQueryXrefDocument } from 'src/entities/topic-query-xref.entity';
 
 @Injectable()
 export class QueryService {
   constructor(
     @InjectModel(Query.name) private readonly queryModel: Model<QueryDocument>,
-    private readonly topicQueryXrefModel: Model<TopicQueryXrefDocument>,
+    @InjectModel(TopicQueryXref.name) private readonly topicQueryXrefModel: Model<TopicQueryXrefDocument>,
   ) {}
 
   public async getQuery(queryId: string): Promise<Query> {

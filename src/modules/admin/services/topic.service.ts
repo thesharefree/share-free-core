@@ -1,16 +1,16 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { GroupTopicXrefDocument } from 'src/entities/group-topic-xref.entity';
-import { TopicQueryXrefDocument } from 'src/entities/topic-query-xref.entity';
+import { GroupTopicXref, GroupTopicXrefDocument } from 'src/entities/group-topic-xref.entity';
+import { TopicQueryXref, TopicQueryXrefDocument } from 'src/entities/topic-query-xref.entity';
 import { Topic, TopicDocument } from 'src/entities/topic.entity';
 
 @Injectable()
 export class TopicService {
   constructor(
     @InjectModel(Topic.name) private readonly topicModel: Model<TopicDocument>,
-    private readonly groupTopicXrefModel: Model<GroupTopicXrefDocument>,
-    private readonly topicQueryXrefModel: Model<TopicQueryXrefDocument>,
+    @InjectModel(GroupTopicXref.name) private readonly groupTopicXrefModel: Model<GroupTopicXrefDocument>,
+    @InjectModel(TopicQueryXref.name) private readonly topicQueryXrefModel: Model<TopicQueryXrefDocument>,
   ) {}
 
   public async getTopic(topicId: string): Promise<Topic> {

@@ -1,4 +1,4 @@
-import { Controller, Get, Req, Put, Query } from '@nestjs/common';
+import { Controller, Get, Req, Put, Query, Delete } from '@nestjs/common';
 import { Auth } from 'src/decorators/auth.decorator';
 import { Request } from 'express';
 import { UserAnswerService } from '../services/user-answer.service';
@@ -29,6 +29,16 @@ export class UserAnswerController {
   pendingQueries(@Req() request: Request): Promise<QueryEntity[]> {
     const loggedInUser = request['user'];
     return this.userAnswerService.pendingQueries(loggedInUser.email);
+  }
+
+  @Auth('USER')
+  @Delete('/deleteAnswer')
+  deleteAnswer(
+    @Query('queryId') queryId: string,
+    @Req() request: Request,
+  ): Promise<void> {
+    const loggedInUser = request['user'];
+    return this.userAnswerService.deleteAnswer(queryId, loggedInUser);
   }
 
   @Auth('USER')

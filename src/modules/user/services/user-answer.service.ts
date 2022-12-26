@@ -118,4 +118,18 @@ export class UserAnswerService {
       ).filter((query) => query.target.includes('USER'));
     }
   }
+
+  public async deleteAnswer(
+    queryId: string,
+    loggedInUser: string,
+  ): Promise<void> {
+    const user = await this.userModel.findOne({ email: loggedInUser });
+    if (user == null) {
+      throw new HttpException('Invalid user', 400);
+    }
+    await this.userAnswerModel.deleteOne({
+      queryId: queryId,
+      userId: user._id,
+    });
+  }
 }

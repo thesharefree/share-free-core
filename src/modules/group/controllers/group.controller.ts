@@ -68,7 +68,7 @@ export class GroupController {
   }
 
   @Auth('USER')
-  @Get('/callInProgress/:groupId')
+  @Put('/callInProgress/:groupId')
   callInProgress(
     @Param('groupId') groupId: string,
     @Query('callInProgress') callInProgress: boolean,

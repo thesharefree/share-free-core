@@ -68,13 +68,14 @@ export class GroupController {
   }
 
   @Auth('USER')
-  @Get('/token/:groupId')
-  conferenceToken(
+  @Get('/callInProgress/:groupId')
+  callInProgress(
     @Param('groupId') groupId: string,
+    @Query('callInProgress') callInProgress: boolean,
     @Req() request: Request,
-  ): Promise<string> {
+  ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.groupService.conferenceToken(groupId, loggedInUser.email);
+    return this.groupService.callInProgress(groupId, loggedInUser.email, callInProgress);
   }
 
   @Auth('USER')

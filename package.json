@@ -29,7 +29,6 @@
     "@nestjs/mongoose": "^9.2.0",
     "@nestjs/platform-express": "^9.1.2",
     "@nestjs/swagger": "^6.1.2",
-    "agora-access-token": "^2.0.4",
     "class-validator": "^0.13.2",
     "crc-32": "^1.2.2",
     "cuint": "^0.2.2",

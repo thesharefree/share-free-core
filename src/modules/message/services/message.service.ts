@@ -202,14 +202,14 @@ export class MessageService {
     }
   }
 
-  public async notifyConference(groupId: string, rtcToken: string) {
+  public async notifyConference(groupId: string, callInProgress: boolean) {
     const group = await this.groupModel.findById(groupId);
     var messagePayload: messaging.MulticastMessage = {
       data: {
         type: 'CONFERENCE',
         title: group.name + ' calling..',
         message: group.name,
-        rtcToken: rtcToken,
+        callInProgress: callInProgress.toString(),
         groupId: groupId,
       },
       // notification: {

@@ -4,14 +4,9 @@ import {
 } from '@nestjs/azure-storage';
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { RtcRole, RtcTokenBuilder } from 'agora-access-token';
 import { Model } from 'mongoose';
 import { Group, GroupDocument } from 'src/entities/group.entity';
 import { MessageService } from 'src/modules/message/services/message.service';
-
-const appID = '991cd87a4118415997443c40c06156a7';
-const appCertificate = 'de0ea8e1b9d6432d9726b73dedd9cfa0';
-const role = RtcRole.PUBLISHER;
 
 @Injectable()
 export class GroupService {
@@ -114,10 +109,11 @@ export class GroupService {
     );
   }
 
-  public async conferenceToken(
+  public async callInProgress(
     groupId: string,
     loggedInUser: string,
-  ): Promise<string> {
+    callInProgress: boolean,
+  ): Promise<void> {
     const extGroup = await this.groupModel.findById(groupId);
     if (extGroup == null) {
       throw new HttpException('Invalid Group', 400);
@@ -125,28 +121,13 @@ export class GroupService {
     if (extGroup.owner !== loggedInUser) {
       throw new HttpException("You don't own this Group", 400);
     }
-    const dateNow = Date.now();
-    const expirationTimeInSeconds = 3600;
-    const currentTimestamp = Math.floor(dateNow / 1000);
-    const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
-    const rtcExpiry = new Date(privilegeExpiredTs * 1000);
-    const rtcToken = RtcTokenBuilder.buildTokenWithUid(
-      appID,
-      appCertificate,
-      extGroup._id.toString(),
-      0,
-      role,
-      privilegeExpiredTs,
-    );
     await this.groupModel.updateOne(
       { _id: groupId },
       {
-        rtcToken: rtcToken,
-        rtcExpiry: rtcExpiry,
+        callInProgress: callInProgress,
       },
     );
-    await this.messageService.notifyConference(groupId, rtcToken);
-    return rtcToken;
+    await this.messageService.notifyConference(groupId, callInProgress);
   }
 
   public async report(

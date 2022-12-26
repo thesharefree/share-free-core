@@ -18,14 +18,14 @@ export class User extends Location {
   @Prop({
     required: [true, 'Email is required'],
     unique: true,
-    minlength: [8, 'Must be at least 6 characters'],
+    minlength: [8, 'Must be at least 8 characters'],
   })
   email: string;
 
   @Prop({
     required: [true, 'Phone is required'],
     unique: true,
-    minlength: [10, 'Must be at least 3 characters'],
+    minlength: [10, 'Must be at least 10 characters'],
   })
   phone: string;
 

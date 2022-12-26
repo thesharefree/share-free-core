@@ -32,6 +32,7 @@ export class GroupService {
     group.createdDate = new Date();
     group.updatedBy = loggedInUser;
     group.updatedDate = new Date();
+    group.callInProgress = false;
     const createdGroup = new this.groupModel(group);
     const newGroup = await createdGroup.save();
     return newGroup;

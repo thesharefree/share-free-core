@@ -34,89 +34,83 @@ export class UserAnswerService {
     const query = await this.queryModel.findById(queryId);
     if (query == null) {
       throw new HttpException('Invalid query', 400);
+    }
+    let userAnswer = await this.userAnswerModel.findOne({
+      userId: user._id,
+      queryId: queryId,
+    });
+    if (userAnswer != null) {
+      this.userAnswerModel.updateOne(
+        { _id: userAnswer._id },
+        {
+          answer: answer,
+          updatedBy: loggedInUser,
+          updatedDate: new Date(),
+        },
+      );
     } else {
-      let userAnswer = await this.userAnswerModel.findOne({
-        userId: user._id,
-        queryId: queryId,
-      });
-      if (userAnswer != null) {
-        this.userAnswerModel.updateOne(
-          { _id: userAnswer._id },
-          {
-            answer: answer,
-            updatedBy: loggedInUser,
-            updatedDate: new Date(),
-          },
-        );
-      } else {
-        const newUserAnswer = new UserAnswer();
-        newUserAnswer.userId = user._id;
-        newUserAnswer.queryId = queryId;
-        newUserAnswer.answer = answer;
-        newUserAnswer.active = true;
-        newUserAnswer.createdBy = loggedInUser;
-        newUserAnswer.createdDate = new Date();
-        newUserAnswer.updatedBy = loggedInUser;
-        newUserAnswer.updatedDate = new Date();
-        const createdUserAnswer = new this.userAnswerModel(newUserAnswer);
-        await createdUserAnswer.save();
-      }
+      const newUserAnswer = new UserAnswer();
+      newUserAnswer.userId = user._id;
+      newUserAnswer.queryId = queryId;
+      newUserAnswer.answer = answer;
+      newUserAnswer.active = true;
+      newUserAnswer.createdBy = loggedInUser;
+      newUserAnswer.createdDate = new Date();
+      newUserAnswer.updatedBy = loggedInUser;
+      newUserAnswer.updatedDate = new Date();
+      const createdUserAnswer = new this.userAnswerModel(newUserAnswer);
+      await createdUserAnswer.save();
     }
   }
 
   public async userAnswers(email: string): Promise<UserAnswer[]> {
     const user = await this.userModel.findOne({ email: email });
-    if (user == null) {
-      throw new HttpException('Invalid user', 400);
-    } else {
-      const userAnswers = await this.userAnswerModel
-        .find({ userId: user._id })
-        .lean();
-      const answeredQueryIds = userAnswers.map((userAnswer) => {
-        return userAnswer.queryId;
-      });
-      const queries = await this.queryModel
-        .find()
-        .where('_id')
-        .in(answeredQueryIds);
-      userAnswers.forEach((userAnswer) => {
-        const query = queries.find((query) => query._id == userAnswer.queryId);
-        userAnswer.queryStr = query.queryStr;
-      });
-      return userAnswers;
-    }
+    const userAnswers = await this.userAnswerModel
+      .find({ userId: user._id })
+      .lean();
+    const answeredQueryIds = userAnswers.map((userAnswer) => {
+      return userAnswer.queryId;
+    });
+    const queries = await this.queryModel
+      .find()
+      .where('_id')
+      .in(answeredQueryIds);
+    userAnswers.forEach((userAnswer) => {
+      const query = queries.find((query) => query._id == userAnswer.queryId);
+      userAnswer.queryStr = query.queryStr;
+    });
+    return userAnswers;
   }
 
   public async pendingQueries(loggedInUser: string): Promise<Query[]> {
     const user = await this.userModel.findOne({ email: loggedInUser });
     if (user == null) {
       throw new HttpException('Invalid user', 400);
-    } else {
-      const topics = await this.userTopicService.getUserTopics(loggedInUser);
-      const topicIds = topics.map((topic) => {
-        return topic['_id'];
-      });
-      const xrefs = await this.topicQueryXrefModel
-        .find()
-        .where('topicId')
-        .in(topicIds);
-      const queryIds = xrefs.map((xref) => {
-        return xref.queryId;
-      });
-      const userAnswers = await this.userAnswerModel.find({ userId: user._id });
-      const answeredQueryIds = userAnswers.map((answer) => {
-        return answer.queryId;
-      });
-      const pendingQueryIds = [];
-      queryIds.forEach((queryId) => {
-        if (!answeredQueryIds.includes(queryId)) {
-          pendingQueryIds.push(queryId);
-        }
-      });
-      return (
-        await this.queryModel.find().where('_id').in(pendingQueryIds)
-      ).filter((query) => query.target.includes('USER'));
     }
+    const topics = await this.userTopicService.getUserTopics(loggedInUser);
+    const topicIds = topics.map((topic) => {
+      return topic['_id'];
+    });
+    const xrefs = await this.topicQueryXrefModel
+      .find()
+      .where('topicId')
+      .in(topicIds);
+    const queryIds = xrefs.map((xref) => {
+      return xref.queryId;
+    });
+    const userAnswers = await this.userAnswerModel.find({ userId: user._id });
+    const answeredQueryIds = userAnswers.map((answer) => {
+      return answer.queryId;
+    });
+    const pendingQueryIds = [];
+    queryIds.forEach((queryId) => {
+      if (!answeredQueryIds.includes(queryId)) {
+        pendingQueryIds.push(queryId);
+      }
+    });
+    return (
+      await this.queryModel.find().where('_id').in(pendingQueryIds)
+    ).filter((query) => query.target.includes('USER'));
   }
 
   public async deleteAnswer(
@@ -124,9 +118,6 @@ export class UserAnswerService {
     loggedInUser: string,
   ): Promise<void> {
     const user = await this.userModel.findOne({ email: loggedInUser });
-    if (user == null) {
-      throw new HttpException('Invalid user', 400);
-    }
     await this.userAnswerModel.deleteOne({
       queryId: queryId,
       userId: user._id,

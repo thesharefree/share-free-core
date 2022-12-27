@@ -38,7 +38,7 @@ export class UserAnswerController {
     @Req() request: Request,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.userAnswerService.deleteAnswer(queryId, loggedInUser);
+    return this.userAnswerService.deleteAnswer(queryId, loggedInUser.email);
   }
 
   @Auth('USER')

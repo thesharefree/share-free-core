@@ -1,8 +1,7 @@
-import { Controller, Get, Req } from '@nestjs/common';
+import { Controller, Get, Query, Req } from '@nestjs/common';
 import { Auth } from 'src/decorators/auth.decorator';
 import { GroupSearchService } from '../services/group-search.service';
 import { Group } from 'src/entities/group.entity';
-import { Request } from 'express';
 
 @Controller('/group/search')
 export class GroupSearchController {
@@ -10,8 +9,7 @@ export class GroupSearchController {
 
   @Auth('USER')
   @Get()
-  searchGroups(@Req() request: Request): Promise<Group[]> {
-    const loggedInUser = request['user'];
-    return this.groupSearchService.searchGroups(loggedInUser.email);
+  searchGroups(@Query('keywords') keywords: string): Promise<Group[]> {
+    return this.groupSearchService.searchGroups(keywords);
   }
 }

@@ -2,32 +2,53 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Group, GroupDocument } from 'src/entities/group.entity';
-import {
-  UserGroupXref,
-  UserGroupXrefDocument,
-} from 'src/entities/user-group-xref.entity';
-import { User, UserDocument } from 'src/entities/user.entity';
+import { Topic, TopicDocument } from 'src/entities/topic.entity';
+import { GroupTopicService } from './group-topic.service';
 
 @Injectable()
 export class GroupSearchService {
   constructor(
-    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
+    @InjectModel(Topic.name) private readonly topicModel: Model<TopicDocument>,
     @InjectModel(Group.name) private readonly groupModel: Model<GroupDocument>,
-    @InjectModel(UserGroupXref.name)
-    private readonly userGroupXrefModel: Model<UserGroupXrefDocument>,
+    private readonly groupTopicService: GroupTopicService,
   ) {}
 
-  public async searchGroups(loggedInUser: string): Promise<Group[]> {
-    const user = await this.userModel.findOne({ email: loggedInUser });
-    const userGroups = await this.groupModel.find({ owner: loggedInUser });
-    const myGroupIds = userGroups.map((group) => {
-      return group._id;
+  public async searchGroups(keywordsStr: string): Promise<Group[]> {
+    const groups = new Set<Group>();
+    const groupFind = [
+      {
+        $search: {
+          index: 'group',
+          text: {
+            query: keywordsStr,
+            path: {
+              wildcard: '*',
+            },
+          },
+        },
+      },
+    ];
+    const searchedGroups = await this.groupModel.aggregate(groupFind);
+    searchedGroups.forEach((sg) => groups.add(sg));
+    const topicFind = [
+      {
+        $search: {
+          index: 'topic',
+          text: {
+            query: keywordsStr,
+            path: {
+              wildcard: '*',
+            },
+          },
+        },
+      },
+    ];
+    const searchedTopics = await this.topicModel.aggregate(topicFind);
+    const topicIds = searchedTopics.map((topic) => {
+      return topic._id;
     });
-    const xrefResps = await this.userGroupXrefModel.find({ userId: user._id });
-    const joinedGroupIds = xrefResps.map((xref) => {
-      return xref.groupId;
-    });
-    const groupIds = myGroupIds.concat(joinedGroupIds);
-    return await this.groupModel.find().where('_id').nin(groupIds);
+    const searchedTopicGroups = await this.groupTopicService.getTopicsGroups(topicIds);
+    searchedTopicGroups.forEach((stg) => groups.add(stg));
+    return Array.from(groups);
   }
 }

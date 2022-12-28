@@ -78,4 +78,12 @@ export class GroupTopicService {
       return await this.topicModel.find().where('_id').in(topicIds);
     }
   }
+
+  public async getTopicsGroups(topicIds: string[]): Promise<Group[]> {
+      const xrefResps = await this.groupTopicXrefModel.find().where('_id').in(topicIds);
+      const groupIds = xrefResps.map((xref) => {
+        return xref.groupId;
+      });
+      return await this.groupModel.find().where('_id').in(groupIds);
+    }
 }

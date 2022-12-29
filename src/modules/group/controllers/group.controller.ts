@@ -15,6 +15,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
 import { Auth } from 'src/decorators/auth.decorator';
 import { Group } from 'src/entities/group.entity';
+import { UserGroupActions } from 'src/entities/user-group-actions.entity';
 import { GroupService } from '../services/group.service';
 
 @Controller('/groups')
@@ -79,13 +80,46 @@ export class GroupController {
   }
 
   @Auth('USER')
-  @Post('/report/:groupId')
-  reportGroup(
+  @Post('/toggleReport/:groupId')
+  toggleReport(
     @Param('groupId') groupId: string,
+    @Query('report') report: boolean,
     @Query('category') category: string,
     @Req() request: Request,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.groupService.report(groupId, category, loggedInUser.email);
+    return this.groupService.toggleReport(groupId, report, category, loggedInUser.email);
+  }
+
+  @Auth('USER')
+  @Post('/togglePin/:groupId')
+  togglePin(
+    @Param('groupId') groupId: string,
+    @Query('pin') pin: boolean,
+    @Req() request: Request,
+  ): Promise<void> {
+    const loggedInUser = request['user'];
+    return this.groupService.togglePin(groupId, pin, loggedInUser.email);
+  }
+
+  @Auth('USER')
+  @Post('/toggleStar/:groupId')
+  toggleStar(
+    @Param('groupId') groupId: string,
+    @Query('star') star: boolean,
+    @Req() request: Request,
+  ): Promise<void> {
+    const loggedInUser = request['user'];
+    return this.groupService.toggleStar(groupId, star, loggedInUser.email);
+  }
+
+  @Auth('USER')
+  @Get('/userActions/:groupId')
+  userActions(
+    @Param('groupId') groupId: string,
+    @Req() request: Request,
+  ): Promise<UserGroupActions> {
+    const loggedInUser = request['user'];
+    return this.groupService.userActions(groupId, loggedInUser.email);
   }
 }

@@ -24,6 +24,10 @@ import {
   UserGroupXref,
   UserGroupXrefSchema,
 } from 'src/entities/user-group-xref.entity';
+import {
+  UserGroupActions,
+  UserGroupActionsSchema,
+} from 'src/entities/user-group-actions.entity';
 import { User, UserSchema } from 'src/entities/user.entity';
 import { MessageModule } from '../message/message.module';
 import { GroupAnswerController } from './controllers/group-answer.controller';
@@ -62,6 +66,9 @@ import { GroupService } from './services/group.service';
     ]),
     MongooseModule.forFeature([
       { name: UserGroupRequestXref.name, schema: UserGroupRequestXrefSchema },
+    ]),
+    MongooseModule.forFeature([
+      { name: UserGroupActions.name, schema: UserGroupActionsSchema },
     ]),
     MessageModule,
   ],

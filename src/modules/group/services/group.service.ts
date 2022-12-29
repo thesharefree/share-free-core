@@ -6,12 +6,20 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Group, GroupDocument } from 'src/entities/group.entity';
+import {
+  UserGroupActions,
+  UserGroupActionsDocument,
+} from 'src/entities/user-group-actions.entity';
+import { User, UserDocument } from 'src/entities/user.entity';
 import { MessageService } from 'src/modules/message/services/message.service';
 
 @Injectable()
 export class GroupService {
   constructor(
+    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     @InjectModel(Group.name) private readonly groupModel: Model<GroupDocument>,
+    @InjectModel(UserGroupActions.name)
+    private readonly userGroupActionsModel: Model<UserGroupActionsDocument>,
     private readonly messageService: MessageService,
     private readonly azureStorage: AzureStorageService,
   ) {}
@@ -131,15 +139,150 @@ export class GroupService {
     await this.messageService.notifyConference(groupId, callInProgress);
   }
 
-  public async report(
+  public async toggleReport(
     groupId: string,
+    report: boolean,
     category: string,
     loggedInUser: string,
   ): Promise<void> {
+    const user = await this.userModel.findOne({ email: loggedInUser });
     const extGroup = await this.groupModel.findById(groupId);
     if (extGroup == null) {
       throw new HttpException('Invalid Group', 400);
     }
-    // create group report created by loggedInUser
+    var userGroupActions = await this.userGroupActionsModel.findOne({
+      userId: user._id,
+      groupId: groupId,
+    });
+    if (userGroupActions == null) {
+      var newUserGroupActions = new UserGroupActions();
+      newUserGroupActions.userId = user._id;
+      newUserGroupActions.groupId = groupId;
+      newUserGroupActions.pinned = false;
+      newUserGroupActions.starred = false;
+      newUserGroupActions.reported = report;
+      newUserGroupActions.reportCategory = category;
+      newUserGroupActions.active = true;
+      newUserGroupActions.createdBy = loggedInUser;
+      newUserGroupActions.createdDate = new Date();
+      newUserGroupActions.updatedBy = loggedInUser;
+      newUserGroupActions.updatedDate = new Date();
+      const createdUserGroupActions = new this.userGroupActionsModel(
+        newUserGroupActions,
+      );
+      await createdUserGroupActions.save();
+      return;
+    } else {
+      await this.userGroupActionsModel.updateOne(
+        { _id: userGroupActions._id },
+        {
+          reported: report,
+          reportCategory: category,
+          updatedBy: loggedInUser,
+          updatedDate: new Date(),
+        },
+      );
+    }
+  }
+
+  public async togglePin(
+    groupId: string,
+    pin: boolean,
+    loggedInUser: string,
+  ): Promise<void> {
+    const user = await this.userModel.findOne({ email: loggedInUser });
+    const extGroup = await this.groupModel.findById(groupId);
+    if (extGroup == null) {
+      throw new HttpException('Invalid Group', 400);
+    }
+    var userGroupActions = await this.userGroupActionsModel.findOne({
+      userId: user._id,
+      groupId: groupId,
+    });
+    if (userGroupActions == null) {
+      var newUserGroupActions = new UserGroupActions();
+      newUserGroupActions.userId = user._id;
+      newUserGroupActions.groupId = groupId;
+      newUserGroupActions.pinned = pin;
+      newUserGroupActions.starred = false;
+      newUserGroupActions.reported = false;
+      newUserGroupActions.active = true;
+      newUserGroupActions.createdBy = loggedInUser;
+      newUserGroupActions.createdDate = new Date();
+      newUserGroupActions.updatedBy = loggedInUser;
+      newUserGroupActions.updatedDate = new Date();
+      const createdUserGroupActions = new this.userGroupActionsModel(
+        newUserGroupActions,
+      );
+      await createdUserGroupActions.save();
+      return;
+    } else {
+      await this.userGroupActionsModel.updateOne(
+        { _id: userGroupActions._id },
+        {
+          pinned: pin,
+          updatedBy: loggedInUser,
+          updatedDate: new Date(),
+        },
+      );
+    }
+  }
+
+  public async toggleStar(
+    groupId: string,
+    star: boolean,
+    loggedInUser: string,
+  ): Promise<void> {
+    const user = await this.userModel.findOne({ email: loggedInUser });
+    const extGroup = await this.groupModel.findById(groupId);
+    if (extGroup == null) {
+      throw new HttpException('Invalid Group', 400);
+    }
+    var userGroupActions = await this.userGroupActionsModel.findOne({
+      userId: user._id,
+      groupId: groupId,
+    });
+    if (userGroupActions == null) {
+      var newUserGroupActions = new UserGroupActions();
+      newUserGroupActions.userId = user._id;
+      newUserGroupActions.groupId = groupId;
+      newUserGroupActions.pinned = false;
+      newUserGroupActions.starred = star;
+      newUserGroupActions.reported = false;
+      newUserGroupActions.active = true;
+      newUserGroupActions.createdBy = loggedInUser;
+      newUserGroupActions.createdDate = new Date();
+      newUserGroupActions.updatedBy = loggedInUser;
+      newUserGroupActions.updatedDate = new Date();
+      const createdUserGroupActions = new this.userGroupActionsModel(
+        newUserGroupActions,
+      );
+      await createdUserGroupActions.save();
+      return;
+    } else {
+      await this.userGroupActionsModel.updateOne(
+        { _id: userGroupActions._id },
+        {
+          starred: star,
+          updatedBy: loggedInUser,
+          updatedDate: new Date(),
+        },
+      );
+    }
+  }
+
+  public async userActions(
+    groupId: string,
+    loggedInUser: string,
+  ): Promise<UserGroupActions> {
+    const user = await this.userModel.findOne({ email: loggedInUser });
+    const extGroup = await this.groupModel.findById(groupId);
+    if (extGroup == null) {
+      throw new HttpException('Invalid Group', 400);
+    }
+    return await this.userGroupActionsModel.findOne({
+      userId: user._id,
+      groupId: groupId,
+    });
   }
 }

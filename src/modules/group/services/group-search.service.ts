@@ -45,7 +45,7 @@ export class GroupSearchService {
     ];
     const searchedTopics = await this.topicModel.aggregate(topicFind);
     const topicIds = searchedTopics.map((topic) => {
-      return topic._id;
+      return topic._id.toString();
     });
     const searchedTopicGroups = await this.groupTopicService.getTopicsGroups(topicIds);
     searchedTopicGroups.forEach((stg) => groups.add(stg));

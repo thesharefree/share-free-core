@@ -21,6 +21,10 @@ import {
   UserTopicXref,
   UserTopicXrefSchema,
 } from 'src/entities/user-topic-xref.entity';
+import {
+  UserGroupActions,
+  UserGroupActionsSchema,
+} from 'src/entities/user-group-actions.entity';
 import { User, UserSchema } from 'src/entities/user.entity';
 import { UserAnswerController } from './controllers/user-answer.controller';
 import { UserGroupController } from './controllers/user-group.controller';
@@ -58,6 +62,9 @@ import { UserService } from './services/user.service';
     ]),
     MongooseModule.forFeature([
       { name: UserAnswer.name, schema: UserAnswerSchema },
+    ]),
+    MongooseModule.forFeature([
+      { name: UserGroupActions.name, schema: UserGroupActionsSchema },
     ]),
   ],
   controllers: [

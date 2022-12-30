@@ -8,10 +8,17 @@ import { UserGroupService } from '../services/user-group.service';
 export class UserGroupController {
   constructor(private readonly userGroupService: UserGroupService) {}
 
-  @Get()
   @Auth('USER')
+  @Get()
   getUserGroups(@Req() request: Request): Promise<Group[]> {
     const loggedInUser = request['user'];
     return this.userGroupService.getUserGroups(loggedInUser.email);
+  }
+
+  @Auth('USER')
+  @Get('/actioned')
+  getUserActionedGroups(@Req() request: Request): Promise<Group[]> {
+    const loggedInUser = request['user'];
+    return this.userGroupService.getUserActionedGroups(loggedInUser.email);
   }
 }

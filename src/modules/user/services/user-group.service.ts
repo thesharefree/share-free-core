@@ -7,6 +7,10 @@ import {
 } from 'src/entities/user-group-xref.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import {
+  UserGroupActions,
+  UserGroupActionsDocument,
+} from 'src/entities/user-group-actions.entity';
 
 @Injectable()
 export class UserGroupService {
@@ -15,6 +19,8 @@ export class UserGroupService {
     @InjectModel(Group.name) private readonly groupModel: Model<GroupDocument>,
     @InjectModel(UserGroupXref.name)
     private readonly userGroupXrefModel: Model<UserGroupXrefDocument>,
+    @InjectModel(UserGroupActions.name)
+    private readonly userGroupActionsModel: Model<UserGroupActionsDocument>,
   ) {}
 
   public async getUserGroups(loggedInUser: string): Promise<Group[]> {
@@ -28,6 +34,17 @@ export class UserGroupService {
       return xref.groupId;
     });
     const groupIds = myGroupIds.concat(joinedGroupIds);
+    return await this.groupModel.find().where('_id').in(groupIds);
+  }
+
+  public async getUserActionedGroups(loggedInUser: string): Promise<Group[]> {
+    const user = await this.userModel.findOne({ email: loggedInUser });
+    const userActions = await this.userGroupActionsModel.find({
+      userId: user._id,
+    });
+    const groupIds = userActions.map((action) => {
+      return action.groupId;
+    });
     return await this.groupModel.find().where('_id').in(groupIds);
   }
 }

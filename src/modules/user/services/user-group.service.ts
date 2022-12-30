@@ -45,6 +45,10 @@ export class UserGroupService {
     const groupIds = userActions.map((action) => {
       return action.groupId;
     });
-    return await this.groupModel.find().where('_id').in(groupIds);
+    const groups = await this.groupModel.find().where('_id').in(groupIds);
+    groups.forEach((group) => {
+      group['userActions'] = userActions.find(value => value._id == group._id);
+    });
+    return groups;
   }
 }

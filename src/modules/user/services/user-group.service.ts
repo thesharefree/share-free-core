@@ -37,7 +37,7 @@ export class UserGroupService {
     return await this.groupModel.find().where('_id').in(groupIds);
   }
 
-  public async getUserActionedGroups(loggedInUser: string): Promise<Group[]> {
+  public async getUserActionedGroups(loggedInUser: string): Promise<any[]> {
     const user = await this.userModel.findOne({ email: loggedInUser });
     const userActions = await this.userGroupActionsModel.find({
       userId: user._id,
@@ -48,9 +48,10 @@ export class UserGroupService {
     const groups = await this.groupModel.find().where('_id').in(groupIds);
     groups.forEach((group) => {
       group['userActions'] = userActions.find(
-        (value) => value._id.toString() === group._id.toString(),
+        (action) => action._id.toString() === group._id.toString(),
       );
     });
+    console.log('actioned groups', groups);
     return groups;
   }
 }

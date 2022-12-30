@@ -17,7 +17,7 @@ export class UserGroupController {
 
   @Auth('USER')
   @Get('/actioned')
-  getUserActionedGroups(@Req() request: Request): Promise<Group[]> {
+  getUserActionedGroups(@Req() request: Request): Promise<any[]> {
     const loggedInUser = request['user'];
     return this.userGroupService.getUserActionedGroups(loggedInUser.email);
   }

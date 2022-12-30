@@ -47,7 +47,9 @@ export class UserGroupService {
     });
     const groups = await this.groupModel.find().where('_id').in(groupIds);
     groups.forEach((group) => {
-      group['userActions'] = userActions.find(value => value._id == group._id);
+      group['userActions'] = userActions.find(
+        (value) => value._id.toString() === group._id.toString(),
+      );
     });
     return groups;
   }

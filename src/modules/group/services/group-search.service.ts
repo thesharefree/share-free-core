@@ -14,7 +14,6 @@ export class GroupSearchService {
   ) {}
 
   public async searchGroups(keywordsStr: string): Promise<Group[]> {
-    const groups = new Set<Group>();
     const groupFind = [
       {
         $search: {
@@ -29,7 +28,6 @@ export class GroupSearchService {
       },
     ];
     const searchedGroups = await this.groupModel.aggregate(groupFind);
-    searchedGroups.forEach((sg) => groups.add(sg));
     const topicFind = [
       {
         $search: {
@@ -47,8 +45,14 @@ export class GroupSearchService {
     const topicIds = searchedTopics.map((topic) => {
       return topic._id.toString();
     });
-    const searchedTopicGroups = await this.groupTopicService.getTopicsGroups(topicIds);
-    searchedTopicGroups.forEach((stg) => groups.add(stg));
-    return Array.from(groups);
+    const searchedTopicGroups = await this.groupTopicService.getTopicsGroups(
+      topicIds,
+    );
+    const groups = searchedGroups.concat(searchedTopicGroups);
+    const groupIds = groups.map((value) => value._id.toString());
+    const uniqueGroups = groups.filter((group, pos) => {
+      return groupIds.indexOf(group._id.toString()) == pos;
+    });
+    return uniqueGroups;
   }
 }

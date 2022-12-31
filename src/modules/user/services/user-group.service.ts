@@ -54,7 +54,7 @@ export class UserGroupService {
       .lean();
     groups.forEach((group) => {
       group.userActions = userActions.find(
-        (action) => group._id.toString() === group._id.toString(),
+        (action) => action._id.toString() === group._id.toString(),
       );
     });
     return groups;

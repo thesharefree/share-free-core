@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { Location } from './location';
+import { UserGroupActions } from './user-group-actions.entity';
 
 @Schema()
 export class Group extends Location {
@@ -29,6 +30,8 @@ export class Group extends Location {
 
   @Prop()
   callInProgress: boolean;
+
+  userActions: UserGroupActions;
 }
 
 export type GroupDocument = Group & Document;

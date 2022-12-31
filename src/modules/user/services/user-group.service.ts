@@ -39,12 +39,24 @@ export class UserGroupService {
 
   public async getUserActionedGroups(loggedInUser: string): Promise<Group[]> {
     const user = await this.userModel.findOne({ email: loggedInUser });
-    const userActions = await this.userGroupActionsModel.find({
-      userId: user._id,
-    });
+    const userActions = await this.userGroupActionsModel
+      .find({
+        userId: user._id,
+      })
+      .lean();
     const groupIds = userActions.map((action) => {
       return action.groupId;
     });
-    return await this.groupModel.find().where('_id').in(groupIds);
+    const groups = await this.groupModel
+      .find()
+      .where('_id')
+      .in(groupIds)
+      .lean();
+    groups.forEach((group) => {
+      group.userActions = userActions.find(
+        (action) => group._id.toString() === group._id.toString(),
+      );
+    });
+    return groups;
   }
 }

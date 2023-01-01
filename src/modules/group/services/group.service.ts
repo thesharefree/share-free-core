@@ -10,6 +10,7 @@ import {
   UserGroupActions,
   UserGroupActionsDocument,
 } from 'src/entities/user-group-actions.entity';
+import { UserGroupXref, UserGroupXrefDocument } from 'src/entities/user-group-xref.entity';
 import { User, UserDocument } from 'src/entities/user.entity';
 import { MessageService } from 'src/modules/message/services/message.service';
 
@@ -18,6 +19,8 @@ export class GroupService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     @InjectModel(Group.name) private readonly groupModel: Model<GroupDocument>,
+    @InjectModel(UserGroupXref.name)
+    private readonly userGroupXrefModel: Model<UserGroupXrefDocument>,
     @InjectModel(UserGroupActions.name)
     private readonly userGroupActionsModel: Model<UserGroupActionsDocument>,
     private readonly messageService: MessageService,
@@ -123,11 +126,18 @@ export class GroupService {
     loggedInUser: string,
     callInProgress: boolean,
   ): Promise<void> {
+    const user = await this.userModel.findById(loggedInUser);
     const extGroup = await this.groupModel.findById(groupId);
     if (extGroup == null) {
       throw new HttpException('Invalid Group', 400);
     }
-    if (extGroup.owner !== loggedInUser) {
+    const xrefResp = await this.userGroupXrefModel.find({ groupId: groupId });
+    const isOwner = extGroup.owner !== loggedInUser;
+    const isAdmin = xrefResp.find(
+      (xref) =>
+        xref.userId.toString() === user._id.toString() && xref.isAdmin,
+    ) != null;
+    if (!isOwner && !isAdmin) {
       throw new HttpException("You don't own this Group", 400);
     }
     await this.groupModel.updateOne(

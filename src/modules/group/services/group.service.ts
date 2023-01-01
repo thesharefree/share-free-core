@@ -66,6 +66,7 @@ export class GroupService {
       {
         name: group.name,
         description: group.description,
+        organizationId: group.organizationId,
         latitude: group.latitude,
         longitude: group.longitude,
         city: group.city,

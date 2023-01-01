@@ -12,10 +12,12 @@ import {
 import { UserTopicService } from './user-topic.service';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { UserService } from './user.service';
 
 @Injectable()
 export class UserAnswerService {
   constructor(
+    private readonly userService: UserService,
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     @InjectModel(Query.name) private readonly queryModel: Model<QueryDocument>,
     @InjectModel(TopicQueryXref.name)
@@ -67,6 +69,24 @@ export class UserAnswerService {
     const user = await this.userModel.findOne({ email: email });
     const userAnswers = await this.userAnswerModel
       .find({ userId: user._id })
+      .lean();
+    const answeredQueryIds = userAnswers.map((userAnswer) => {
+      return userAnswer.queryId;
+    });
+    const queries = await this.queryModel
+      .find()
+      .where('_id')
+      .in(answeredQueryIds);
+    userAnswers.forEach((userAnswer) => {
+      const query = queries.find((query) => query._id == userAnswer.queryId);
+      userAnswer.queryStr = query.queryStr;
+    });
+    return userAnswers;
+  }
+
+  public async userAnswersByUserId(userId: string): Promise<UserAnswer[]> {
+    const userAnswers = await this.userAnswerModel
+      .find({ userId: userId })
       .lean();
     const answeredQueryIds = userAnswers.map((userAnswer) => {
       return userAnswer.queryId;

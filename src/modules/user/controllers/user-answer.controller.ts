@@ -1,4 +1,4 @@
-import { Controller, Get, Req, Put, Query, Delete } from '@nestjs/common';
+import { Controller, Get, Req, Put, Query, Delete, Param } from '@nestjs/common';
 import { Auth } from 'src/decorators/auth.decorator';
 import { Request } from 'express';
 import { UserAnswerService } from '../services/user-answer.service';
@@ -42,9 +42,15 @@ export class UserAnswerController {
   }
 
   @Auth('USER')
+  @Get('/:userId')
+  getAnswersByUserId(@Param('userId') userId: string): Promise<UserAnswer[]> {
+    return this.userAnswerService.userAnswersByUserId(userId);
+  }
+
+  @Auth('USER')
   @Get()
   userAnswers(@Req() request: Request): Promise<UserAnswer[]> {
     const loggedInUser = request['user'];
-    return this.userAnswerService.userAnswers(loggedInUser.email);
+    return this.userAnswerService.userAnswersByUserId(loggedInUser.email);
   }
 }

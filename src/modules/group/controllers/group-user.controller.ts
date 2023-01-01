@@ -58,14 +58,14 @@ export class GroupUserController {
   }
 
   @Auth('USER')
-  @Put('/makeAdmin')
-  makeAdmin(
+  @Put('/toggleAdmin')
+  toggleAdmin(
     @Req() request: Request,
     @Query('userId') userId: string,
     @Query('groupId') groupIds: string,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.groupUserService.makeAdmin(
+    return this.groupUserService.toggleAdmin(
       userId,
       groupIds,
       loggedInUser.email,

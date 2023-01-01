@@ -155,7 +155,7 @@ export class GroupUserService {
     return xref;
   }
 
-  public async makeAdmin(
+  public async toggleAdmin(
     userId: string,
     groupId: string,
     loggedInUser: string,
@@ -181,7 +181,7 @@ export class GroupUserService {
       this.userGroupXrefModel.updateOne(
         { _id: xrefResp._id },
         {
-          isAdmin: true,
+          isAdmin: !xrefResp.isAdmin,
           updatedBy: loggedInUser,
           updatedDate: new Date(),
         },

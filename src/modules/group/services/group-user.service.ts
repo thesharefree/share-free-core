@@ -218,7 +218,7 @@ export class GroupUserService {
     groupId: string,
     loggedInUser: string,
   ): Promise<void> {
-    const user = await this.userModel.findById(loggedInUser);
+    const user = await this.userModel.findOne({ email: loggedInUser });
     const group = await this.groupModel.findById(groupId);
     if (group == null) {
       throw new HttpException('Invalid Group', 400);

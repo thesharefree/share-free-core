@@ -126,13 +126,13 @@ export class GroupService {
     loggedInUser: string,
     callInProgress: boolean,
   ): Promise<void> {
-    const user = await this.userModel.findById(loggedInUser);
+    const user = await this.userModel.findOne({ email: loggedInUser });
     const extGroup = await this.groupModel.findById(groupId);
     if (extGroup == null) {
       throw new HttpException('Invalid Group', 400);
     }
-    const xrefResp = await this.userGroupXrefModel.find({ groupId: groupId });
     const isOwner = extGroup.owner !== loggedInUser;
+    const xrefResp = await this.userGroupXrefModel.find({ groupId: groupId });
     const isAdmin = xrefResp.find(
       (xref) =>
         xref.userId.toString() === user._id.toString() && xref.isAdmin,

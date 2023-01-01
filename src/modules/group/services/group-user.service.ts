@@ -146,12 +146,47 @@ export class GroupUserService {
     const xref = new UserGroupXref();
     xref.userId = userId;
     xref.groupId = groupId;
+    xref.isAdmin = false;
     xref.active = true;
     xref.createdBy = loggedInUser;
     xref.createdDate = new Date();
     xref.updatedBy = loggedInUser;
     xref.updatedDate = new Date();
     return xref;
+  }
+
+  public async makeAdmin(
+    userId: string,
+    groupId: string,
+    loggedInUser: string,
+  ): Promise<void> {
+    const user = await this.userModel.findById(userId);
+    if (user == null) {
+      throw new HttpException('Invalid user', 400);
+    }
+    const group = await this.groupModel.findById(groupId);
+    if (group == null) {
+      throw new HttpException('Invalid Group', 400);
+    }
+    if (group.owner != loggedInUser) {
+      throw new HttpException('You do not own this Group', 400);
+    }
+    const xrefResp = await this.userGroupXrefModel.findOne({
+      userId: userId,
+      groupId: groupId,
+    });
+    if (xrefResp == null) {
+      throw new HttpException('User is not a member', 400);
+    } else {
+      this.userGroupXrefModel.updateOne(
+        { _id: xrefResp._id },
+        {
+          isAdmin: true,
+          updatedBy: loggedInUser,
+          updatedDate: new Date(),
+        },
+      );
+    }
   }
 
   public async removeFromGroup(
@@ -210,7 +245,15 @@ export class GroupUserService {
         return xref.userId;
       });
       userIds.push(owner._id);
-      return await this.userModel.where('_id').in(userIds);
+      const users = await this.userModel.where('_id').in(userIds).lean();
+      users.forEach((user) => {
+        user.isAdmin =
+          xrefResp.find(
+            (xref) =>
+              xref.userId.toString() === user._id.toString() && xref.isAdmin,
+          ) != null;
+      });
+      return users;
     }
   }
 }

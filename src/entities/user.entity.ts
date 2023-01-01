@@ -54,6 +54,8 @@ export class User extends Location {
 
   @Prop()
   online: boolean;
+
+  isAdmin: boolean;
 }
 
 export type UserDocument = User & Document;

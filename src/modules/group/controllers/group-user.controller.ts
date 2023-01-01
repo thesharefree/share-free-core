@@ -58,6 +58,21 @@ export class GroupUserController {
   }
 
   @Auth('USER')
+  @Put('/makeAdmin')
+  makeAdmin(
+    @Req() request: Request,
+    @Query('userId') userId: string,
+    @Query('groupId') groupIds: string,
+  ): Promise<void> {
+    const loggedInUser = request['user'];
+    return this.groupUserService.makeAdmin(
+      userId,
+      groupIds,
+      loggedInUser.email,
+    );
+  }
+
+  @Auth('USER')
   @Delete('/removeFromGroup')
   removeFromGroup(
     @Req() request: Request,

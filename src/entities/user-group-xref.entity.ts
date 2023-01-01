@@ -9,6 +9,9 @@ export class UserGroupXref extends Audit {
 
   @Prop()
   groupId: string;
+
+  @Prop()
+  isAdmin: boolean;
 }
 
 export type UserGroupXrefDocument = UserGroupXref & Document;

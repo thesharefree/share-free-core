@@ -178,7 +178,7 @@ export class GroupUserService {
     if (xrefResp == null) {
       throw new HttpException('User is not a member', 400);
     } else {
-      this.userGroupXrefModel.updateOne(
+      await this.userGroupXrefModel.updateOne(
         { _id: xrefResp._id },
         {
           isAdmin: !xrefResp.isAdmin,

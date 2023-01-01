@@ -44,7 +44,7 @@ export class GroupAnswerService {
           queryId: queryId,
         });
         if (groupAnswer != null) {
-          this.groupAnswerModel.updateOne(
+          await this.groupAnswerModel.updateOne(
             { _id: groupAnswer._id },
             {
               answer: answer,

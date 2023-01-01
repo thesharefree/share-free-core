@@ -40,7 +40,7 @@ export class UserAnswerService {
       queryId: queryId,
     });
     if (userAnswer != null) {
-      this.userAnswerModel.updateOne(
+      await this.userAnswerModel.updateOne(
         { _id: userAnswer._id },
         {
           answer: answer,

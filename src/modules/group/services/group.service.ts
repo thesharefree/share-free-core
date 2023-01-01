@@ -132,11 +132,8 @@ export class GroupService {
       throw new HttpException('Invalid Group', 400);
     }
     const isOwner = extGroup.owner !== loggedInUser;
-    const xrefResp = await this.userGroupXrefModel.find({ groupId: groupId });
-    const isAdmin = xrefResp.find(
-      (xref) =>
-        xref.userId.toString() === user._id.toString() && xref.isAdmin,
-    ) != null;
+    const xrefResp = await this.userGroupXrefModel.findOne({ groupId: groupId, userId: user._id, isAdmin: true });
+    const isAdmin = xrefResp != null;
     if (!isOwner && !isAdmin) {
       throw new HttpException("You don't own this Group", 400);
     }

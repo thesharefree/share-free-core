@@ -135,8 +135,8 @@ export class GroupService {
     const isOwner = extGroup.owner !== loggedInUser;
     const xrefResp = await this.userGroupXrefModel.findOne({ groupId: groupId, userId: user._id, isAdmin: true });
     const isAdmin = xrefResp != null;
-    if (!isOwner && !isAdmin) {
-      throw new HttpException("You don't own this Group", 400);
+    if (!isOwner || !isAdmin) {
+      throw new HttpException("You don't have admin access to this Group", 400);
     }
     await this.groupModel.updateOne(
       { _id: groupId },

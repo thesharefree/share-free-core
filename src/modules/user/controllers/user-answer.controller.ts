@@ -51,6 +51,6 @@ export class UserAnswerController {
   @Get()
   userAnswers(@Req() request: Request): Promise<UserAnswer[]> {
     const loggedInUser = request['user'];
-    return this.userAnswerService.userAnswersByUserId(loggedInUser.email);
+    return this.userAnswerService.userAnswers(loggedInUser.email);
   }
 }

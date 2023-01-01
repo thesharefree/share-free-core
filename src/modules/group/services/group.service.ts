@@ -132,10 +132,10 @@ export class GroupService {
     if (extGroup == null) {
       throw new HttpException('Invalid Group', 400);
     }
-    const isOwner = extGroup.owner !== loggedInUser;
-    const xrefResp = await this.userGroupXrefModel.findOne({ groupId: groupId, userId: user._id, isAdmin: true });
-    const isAdmin = xrefResp != null;
-    if (!isOwner || !isAdmin) {
+    const isOwner = extGroup.owner === loggedInUser;
+    const xrefResp = await this.userGroupXrefModel.findOne({ groupId: groupId, userId: user._id });
+    const isAdmin = xrefResp.isAdmin;
+    if (!isOwner && !isAdmin) {
       throw new HttpException("You don't have admin access to this Group", 400);
     }
     await this.groupModel.updateOne(

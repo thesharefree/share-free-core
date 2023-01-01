@@ -64,4 +64,12 @@ export class UserTopicService {
     });
     return await this.topicModel.find().where('_id').in(topicIds);
   }
+
+  public async getUserTopicsByUserId(userId: string): Promise<Topic[]> {
+    const xrefResps = await this.userTopicXrefModel.find({ userId: userId });
+    const topicIds = xrefResps.map((xref) => {
+      return xref.topicId;
+    });
+    return await this.topicModel.find().where('_id').in(topicIds);
+  }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Req, Put, Query } from '@nestjs/common';
+import { Controller, Get, Req, Put, Query, Param } from '@nestjs/common';
 import { Auth } from 'src/decorators/auth.decorator';
 import { Request } from 'express';
 import { Topic } from 'src/entities/topic.entity';
@@ -19,8 +19,14 @@ export class UserTopicController {
   }
 
   @Auth('USER')
+  @Get('/:userId')
+  getUserTopics(@Param('userId') userId: string): Promise<Topic[]> {
+    return this.userTopicService.getUserTopicsByUserId(userId);
+  }
+
+  @Auth('USER')
   @Get()
-  getUserTopics(@Req() request: Request): Promise<Topic[]> {
+  getMyTopics(@Req() request: Request): Promise<Topic[]> {
     const loggedInUser = request['user'];
     return this.userTopicService.getUserTopics(loggedInUser.email);
   }

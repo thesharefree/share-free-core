@@ -41,6 +41,17 @@ export class GroupController {
   }
 
   @Auth('USER')
+  @Put('/updateSchedule/:groupId')
+  updateGroupSchedule(
+    @Param('groupId') groupId: string,
+    @Req() request: Request,
+    @Body() group: Group,
+  ): Promise<void> {
+    const loggedInUser = request['user'];
+    return this.groupService.updateGroupSchedule(groupId, group, loggedInUser.email);
+  }
+
+  @Auth('USER')
   @Post('/uploadBanner/:groupId')
   @UseInterceptors(FileInterceptor('file'))
   uploadBanner(

@@ -78,6 +78,31 @@ export class GroupService {
     );
   }
 
+  public async updateGroupSchedule(
+    groupId: string,
+    group: Group,
+    loggedInUser: string,
+  ): Promise<void> {
+    const extGroup = await this.groupModel.findById(groupId);
+    if (extGroup == null) {
+      throw new HttpException('Invalid Group', 400);
+    }
+    if (extGroup.owner !== loggedInUser) {
+      throw new HttpException("You don't own this Group", 400);
+    }
+    await this.groupModel.updateOne(
+      { _id: groupId },
+      {
+        scheduleType: group.scheduleType,
+        scheduleDays: group.scheduleDays,
+        scheduleHour: group.scheduleHour,
+        scheduleMinute: group.scheduleMinute,
+        updatedBy: loggedInUser,
+        updatedDate: new Date(),
+      },
+    );
+  }
+
   public async uploadBanner(
     file: UploadedFileMetadata,
     groupId: string,

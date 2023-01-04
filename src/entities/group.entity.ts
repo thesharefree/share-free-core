@@ -26,7 +26,16 @@ export class Group extends Location {
   banner: string;
 
   @Prop()
-  scheduleId: string;
+  scheduleType: string;
+
+  @Prop()
+  scheduleDays: string[];
+
+  @Prop()
+  scheduleHour: number;
+
+  @Prop()
+  scheduleMinute: number;
 
   @Prop()
   callInProgress: boolean;

@@ -155,4 +155,13 @@ export class UserService {
       updatedDate: new Date(),
     });
   }
+
+  public async toggleSelf(loggedInUser: string): Promise<void> {
+    const user = await this.userModel.findOne({ email: loggedInUser });
+    await this.userModel.findByIdAndUpdate(user._id, {
+      active: !user.active,
+      updatedBy: loggedInUser,
+      updatedDate: new Date(),
+    });
+  }
 }

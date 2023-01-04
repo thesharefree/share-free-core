@@ -93,4 +93,13 @@ export class UserController {
     const loggedInUser = request['user'];
     return this.userService.toggleUserById(userId, loggedInUser.email);
   }
+
+  @Auth('ADMIN')
+  @Put('/toggle')
+  toggleSelf(
+    @Req() request: Request,
+  ): Promise<void> {
+    const loggedInUser = request['user'];
+    return this.userService.toggleSelf(loggedInUser.email);
+  }
 }

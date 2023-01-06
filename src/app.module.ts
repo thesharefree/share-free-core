@@ -11,7 +11,7 @@ import { User, UserSchema } from './entities/user.entity';
 import { AdminModule } from './modules/admin/admin.module';
 import { GroupModule } from './modules/group/group.module';
 import { HomeModule } from './modules/home/home.module';
-import { OrganizationModule } from './modules/organization/organization.module';
+import { HouseModule } from './modules/house/house.module';
 import { UserModule } from './modules/user/user.module';
 
 @Module({
@@ -26,7 +26,7 @@ import { UserModule } from './modules/user/user.module';
     AdminModule,
     UserModule,
     GroupModule,
-    OrganizationModule,
+    HouseModule,
   ],
   controllers: [],
   providers: [],

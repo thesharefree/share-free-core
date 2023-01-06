@@ -3,15 +3,15 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Group, GroupSchema } from 'src/entities/group.entity';
 import {
-  Organization,
-  OrganizationSchema,
-} from 'src/entities/organization.entity';
+  House,
+  HouseSchema,
+} from 'src/entities/house.entity';
 import { User, UserSchema } from 'src/entities/user.entity';
 import { MessageModule } from '../message/message.module';
-import { OrganizationGroupController } from './controllers/organization-group.controller';
-import { OrganizationController } from './controllers/organization.controller';
-import { OrganizationGroupService } from './services/organization-group.service';
-import { OrganizationService } from './services/organization.service';
+import { HouseGroupController } from './controllers/house-group.controller';
+import { HouseController } from './controllers/house.controller';
+import { HouseGroupService } from './services/house-group.service';
+import { HouseService } from './services/house.service';
 
 @Module({
   imports: [
@@ -22,12 +22,12 @@ import { OrganizationService } from './services/organization.service';
     }),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MongooseModule.forFeature([
-      { name: Organization.name, schema: OrganizationSchema },
+      { name: House.name, schema: HouseSchema },
     ]),
     MongooseModule.forFeature([{ name: Group.name, schema: GroupSchema }]),
     MessageModule,
   ],
-  controllers: [OrganizationController, OrganizationGroupController],
-  providers: [OrganizationService, OrganizationGroupService],
+  controllers: [HouseController, HouseGroupController],
+  providers: [HouseService, HouseGroupService],
 })
-export class OrganizationModule {}
+export class HouseModule {}

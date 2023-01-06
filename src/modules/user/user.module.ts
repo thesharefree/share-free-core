@@ -3,9 +3,9 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Group, GroupSchema } from 'src/entities/group.entity';
 import {
-  Organization,
-  OrganizationSchema,
-} from 'src/entities/organization.entity';
+  House,
+  HouseSchema,
+} from 'src/entities/house.entity';
 import { Query, QuerySchema } from 'src/entities/query.entity';
 import {
   TopicQueryXref,
@@ -28,12 +28,12 @@ import {
 import { User, UserSchema } from 'src/entities/user.entity';
 import { UserAnswerController } from './controllers/user-answer.controller';
 import { UserGroupController } from './controllers/user-group.controller';
-import { UserOrganizationController } from './controllers/user-organization.controller';
+import { UserHouseController } from './controllers/user-house.controller';
 import { UserTopicController } from './controllers/user-topic.controller';
 import { UserController } from './controllers/user.controller';
 import { UserAnswerService } from './services/user-answer.service';
 import { UserGroupService } from './services/user-group.service';
-import { UserOrganizationService } from './services/user-organization.service';
+import { UserHouseService } from './services/user-house.service';
 import { UserTopicService } from './services/user-topic.service';
 import { UserService } from './services/user.service';
 
@@ -48,7 +48,7 @@ import { UserService } from './services/user.service';
     MongooseModule.forFeature([{ name: Topic.name, schema: TopicSchema }]),
     MongooseModule.forFeature([{ name: Query.name, schema: QuerySchema }]),
     MongooseModule.forFeature([
-      { name: Organization.name, schema: OrganizationSchema },
+      { name: House.name, schema: HouseSchema },
     ]),
     MongooseModule.forFeature([{ name: Group.name, schema: GroupSchema }]),
     MongooseModule.forFeature([
@@ -72,14 +72,14 @@ import { UserService } from './services/user.service';
     UserTopicController,
     UserAnswerController,
     UserGroupController,
-    UserOrganizationController,
+    UserHouseController,
   ],
   providers: [
     UserService,
     UserTopicService,
     UserAnswerService,
     UserGroupService,
-    UserOrganizationService,
+    UserHouseService,
   ],
 })
 export class UserModule {}

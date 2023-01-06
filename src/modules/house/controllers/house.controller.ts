@@ -27,7 +27,7 @@ export class HouseController {
     return this.houseService.getAllHouses();
   }
 
-  @Auth('ADMIN')
+  @Auth('USER', 'ADMIN')
   @Post('/create')
   createHouse(
     @Req() request: Request,

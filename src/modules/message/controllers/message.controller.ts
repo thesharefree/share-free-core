@@ -17,20 +17,20 @@ import { Message } from 'src/entities/message.entity';
 export class MessageController {
   constructor(private readonly messageService: MessageService) {}
 
-  @Auth('USER')
-  @Get('/load')
-  loadMessages(
-    @Req() request: Request,
-    @Query('recipientId') recipientId: string,
-    @Query('recipientType') recipientType: string,
-  ): Promise<Message[]> {
-    const loggedInUser = request['user'];
-    return this.messageService.loadMessages(
-      recipientId,
-      recipientType,
-      loggedInUser.email,
-    );
-  }
+  // @Auth('USER')
+  // @Get('/load')
+  // loadMessages(
+  //   @Req() request: Request,
+  //   @Query('recipientId') recipientId: string,
+  //   @Query('recipientType') recipientType: string,
+  // ): Promise<Message[]> {
+  //   const loggedInUser = request['user'];
+  //   return this.messageService.loadMessages(
+  //     recipientId,
+  //     recipientType,
+  //     loggedInUser.email,
+  //   );
+  // }
 
   @Auth('USER')
   @Get('/chats')

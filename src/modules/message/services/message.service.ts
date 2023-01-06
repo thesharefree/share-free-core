@@ -26,86 +26,69 @@ export class MessageService {
     private readonly messageModel: Model<MessageDocument>,
   ) {}
 
-  public async sendMessage(
-    message: Message,
-    loggedInUser: string,
-  ): Promise<void> {
-    const user = await this.userModel.findOne({ email: loggedInUser });
-    message.sender = user._id;
-    message.senderName = user.name;
-    message['_id'] = null;
-    message.active = true;
-    message.createdBy = loggedInUser;
-    message.createdDate = new Date();
-    message.updatedBy = loggedInUser;
-    message.updatedDate = new Date();
-    const createdMessage = new this.messageModel(message);
-    await createdMessage.save();
-    var messagePayload: messaging.MulticastMessage = {
-      data: {
-        type: 'CHAT',
-        title: '',
-        message: message.message,
-        recipientId: message.recipientId,
-        recipientType: message.recipientType,
-        sender: user._id.toString(),
-        senderName: user.name,
-        createdBy: loggedInUser,
-        createdDate: message.createdDate.toISOString(),
-      },
-      // notification: {
-      //   title: '',
-      //   body: message.senderName + ": " + (message.message.length < 16) ? message.message : message.message.substring(0, 15) + "..",
-      // },
-      // android: {
-      //   notification: {
-      //     tag: 'CHAT',
-      //     icon: 'chat',
-      //     title: '',
-      //     body: message.senderName + ": " + (message.message.length < 16) ? message.message : message.message.substring(0, 15) + "..",
-      //   },
-      //   priority: 'high'
-      // },
-      tokens: [],
-    };
-    if (RecipientType.GROUP == message.recipientType) {
-      const group = await this.groupModel.findById(message.recipientId);
-      const owner = await this.userModel.findOne({ email: group.owner });
-      const xrefResp = await this.userGroupXrefModel.find({
-        groupId: group._id,
-      });
-      let userIds = xrefResp.map((xref) => {
-        return xref.userId;
-      });
-      console.log(userIds);
-      userIds.push(owner._id.toString());
-      console.log(userIds);
-      userIds = userIds.filter((userId) => userId != user._id.toString());
-      console.log(userIds);
-      const users = await this.userModel.where('_id').in(userIds);
-      const userTokens = users.map((user) => {
-        return user.registrationToken;
-      });
-      messagePayload.tokens = userTokens;
-      messagePayload.data.title = group.name;
-      //messagePayload.notification.title = group.name;
-      //messagePayload.android.notification.title = group.name;
-    } else {
-      const recipient = await this.userModel.findById(message.recipientId);
-      if (recipient == null) {
-        throw new HttpException('Invalid User', 400);
-      }
-      messagePayload.tokens.push(recipient.registrationToken);
-      messagePayload.data.title = user.name;
-      //messagePayload.notification.title = user.name;
-      //messagePayload.android.notification.title = user.name;
-    }
-    try {
-      await defaultApp.messaging().sendMulticast(messagePayload);
-    } catch (ex) {
-      console.log(JSON.stringify(ex));
-    }
-  }
+  // public async sendMessage(
+  //   message: Message,
+  //   loggedInUser: string,
+  // ): Promise<void> {
+  //   const user = await this.userModel.findOne({ email: loggedInUser });
+  //   message.sender = user._id;
+  //   message.senderName = user.name;
+  //   message['_id'] = null;
+  //   message.active = true;
+  //   message.createdBy = loggedInUser;
+  //   message.createdDate = new Date();
+  //   message.updatedBy = loggedInUser;
+  //   message.updatedDate = new Date();
+  //   const createdMessage = new this.messageModel(message);
+  //   await createdMessage.save();
+  //   var messagePayload: messaging.MulticastMessage = {
+  //     data: {
+  //       type: 'CHAT',
+  //       title: '',
+  //       message: message.message,
+  //       recipientId: message.recipientId,
+  //       recipientType: message.recipientType,
+  //       sender: user._id.toString(),
+  //       senderName: user.name,
+  //       createdBy: loggedInUser,
+  //       createdDate: message.createdDate.toISOString(),
+  //     },
+  //     tokens: [],
+  //   };
+  //   if (RecipientType.GROUP == message.recipientType) {
+  //     const group = await this.groupModel.findById(message.recipientId);
+  //     const owner = await this.userModel.findOne({ email: group.owner });
+  //     const xrefResp = await this.userGroupXrefModel.find({
+  //       groupId: group._id,
+  //     });
+  //     let userIds = xrefResp.map((xref) => {
+  //       return xref.userId;
+  //     });
+  //     console.log(userIds);
+  //     userIds.push(owner._id.toString());
+  //     console.log(userIds);
+  //     userIds = userIds.filter((userId) => userId != user._id.toString());
+  //     console.log(userIds);
+  //     const users = await this.userModel.where('_id').in(userIds);
+  //     const userTokens = users.map((user) => {
+  //       return user.registrationToken;
+  //     });
+  //     messagePayload.tokens = userTokens;
+  //     messagePayload.data.title = group.name;
+  //   } else {
+  //     const recipient = await this.userModel.findById(message.recipientId);
+  //     if (recipient == null) {
+  //       throw new HttpException('Invalid User', 400);
+  //     }
+  //     messagePayload.tokens.push(recipient.registrationToken);
+  //     messagePayload.data.title = user.name;
+  //   }
+  //   try {
+  //     await defaultApp.messaging().sendMulticast(messagePayload);
+  //   } catch (ex) {
+  //     console.log(JSON.stringify(ex));
+  //   }
+  // }
 
   public async loadChats(loggedInUser: string): Promise<any[]> {
     return this.myGroupChats(loggedInUser).then((chats) => {
@@ -115,7 +98,7 @@ export class MessageService {
     });
   }
 
-  public async myGroupChats(loggedInUser: string): Promise<any[]> {
+  private async myGroupChats(loggedInUser: string): Promise<any[]> {
     const myGroups = await this.groupModel.find({ owner: loggedInUser });
     return await Promise.all(
       myGroups.map(async (group) => {
@@ -137,7 +120,7 @@ export class MessageService {
     );
   }
 
-  public async joinedGroupChats(loggedInUser: string): Promise<any[]> {
+  private async joinedGroupChats(loggedInUser: string): Promise<any[]> {
     const user = await this.userModel.findOne({ email: loggedInUser });
     const xrefResp = await this.userGroupXrefModel.find({
       userId: user._id,
@@ -164,43 +147,43 @@ export class MessageService {
     );
   }
 
-  public async loadMessages(
-    recipientId: string,
-    recipientType: string,
-    loggedInUser: string,
-  ): Promise<Message[]> {
-    const user = await this.userModel.findOne({ email: loggedInUser });
-    if (recipientType == RecipientType.GROUP) {
-      const xrefResp = await this.userGroupXrefModel.findOne({
-        groupId: recipientId,
-        userId: user._id,
-        active: true,
-      });
-      if (xrefResp == null || !xrefResp.active) {
-        throw new HttpException("You don't belong in this group", 400);
-      }
-      return await this.messageModel.find({
-        recipientId: recipientId,
-        recipientType: RecipientType.GROUP,
-        createdDate: {
-          $gte: xrefResp.createdDate,
-        },
-      });
-    } else {
-      return await this.messageModel.find({
-        $and: [
-          { recipientType: RecipientType.USER },
-          { createdDate: { $gte: user.createdDate } },
-          {
-            $or: [
-              { $and: [{ recipientId: recipientId }, { sender: user._id }] },
-              { $and: [{ recipientId: user._id }, { sender: recipientId }] },
-            ],
-          },
-        ],
-      });
-    }
-  }
+  // public async loadMessages(
+  //   recipientId: string,
+  //   recipientType: string,
+  //   loggedInUser: string,
+  // ): Promise<Message[]> {
+  //   const user = await this.userModel.findOne({ email: loggedInUser });
+  //   if (recipientType == RecipientType.GROUP) {
+  //     const xrefResp = await this.userGroupXrefModel.findOne({
+  //       groupId: recipientId,
+  //       userId: user._id,
+  //       active: true,
+  //     });
+  //     if (xrefResp == null || !xrefResp.active) {
+  //       throw new HttpException("You don't belong in this group", 400);
+  //     }
+  //     return await this.messageModel.find({
+  //       recipientId: recipientId,
+  //       recipientType: RecipientType.GROUP,
+  //       createdDate: {
+  //         $gte: xrefResp.createdDate,
+  //       },
+  //     });
+  //   } else {
+  //     return await this.messageModel.find({
+  //       $and: [
+  //         { recipientType: RecipientType.USER },
+  //         { createdDate: { $gte: user.createdDate } },
+  //         {
+  //           $or: [
+  //             { $and: [{ recipientId: recipientId }, { sender: user._id }] },
+  //             { $and: [{ recipientId: user._id }, { sender: recipientId }] },
+  //           ],
+  //         },
+  //       ],
+  //     });
+  //   }
+  // }
 
   public async notifyConference(groupId: string, callInProgress: boolean) {
     const group = await this.groupModel.findById(groupId);
@@ -212,19 +195,6 @@ export class MessageService {
         callInProgress: callInProgress.toString(),
         groupId: groupId,
       },
-      // notification: {
-      //   title: 'New Conference Call for ' + group.name,
-      //   body: "Join Now",
-      // },
-      // android: {
-      //   notification: {
-      //     tag: 'CALL',
-      //     icon: 'video',
-      //     title: 'New Conference Call for ' + group.name,
-      //     body: "Join Now",
-      //   },
-      //   priority: 'high'
-      // },
       tokens: [],
     };
     const xrefResp = await this.userGroupXrefModel.find({ groupId: group._id });
@@ -236,6 +206,22 @@ export class MessageService {
       return user.registrationToken;
     });
     messagePayload.tokens = userTokens;
+    try {
+      await defaultApp.messaging().sendMulticast(messagePayload);
+    } catch (ex) {
+      console.log(JSON.stringify(ex));
+    }
+  }
+
+  public async notifyGeneral(title: string, message: string, userTokens: string[]) {
+    var messagePayload: messaging.MulticastMessage = {
+      data: {
+        type: 'GENERAL',
+        title: title,
+        message: message,
+      },
+      tokens: userTokens,
+    };
     try {
       await defaultApp.messaging().sendMulticast(messagePayload);
     } catch (ex) {

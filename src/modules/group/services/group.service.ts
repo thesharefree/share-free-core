@@ -83,12 +83,16 @@ export class GroupService {
     group: Group,
     loggedInUser: string,
   ): Promise<void> {
+    const user = await this.userModel.findOne({ email: loggedInUser });
     const extGroup = await this.groupModel.findById(groupId);
     if (extGroup == null) {
       throw new HttpException('Invalid Group', 400);
     }
-    if (extGroup.owner !== loggedInUser) {
-      throw new HttpException("You don't own this Group", 400);
+    const isOwner = extGroup.owner === loggedInUser;
+    const xrefResp = await this.userGroupXrefModel.findOne({ groupId: groupId, userId: user._id });
+    const isAdmin = xrefResp?.isAdmin;
+    if (!isOwner && !isAdmin) {
+      throw new HttpException("You don't have admin access to this Group", 400);
     }
     await this.groupModel.updateOne(
       { _id: groupId },

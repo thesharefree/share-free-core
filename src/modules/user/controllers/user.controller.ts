@@ -88,7 +88,7 @@ export class UserController {
   @Put('/updateLanguages')
   updateGroupLanguages(
     @Req() request: Request,
-    @Query('languages') languages: string[],
+    @Query('languages') languages: string,
   ): Promise<void> {
     const loggedInUser = request['user'];
     return this.userService.updateLanguages(languages, loggedInUser.email);

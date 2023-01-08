@@ -141,10 +141,10 @@ export class UserService {
     return await this.userModel.findById(userId);
   }
 
-  public async updateLanguages(languages: string[], loggedInUser: string): Promise<void> {
+  public async updateLanguages(languages: string, loggedInUser: string): Promise<void> {
     const user = await this.userModel.findOne({ email: loggedInUser });
     await this.userModel.findByIdAndUpdate(user._id, {
-      languages: languages,
+      languages: languages.split(","),
       updatedBy: loggedInUser,
       updatedDate: new Date(),
     });

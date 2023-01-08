@@ -44,7 +44,7 @@ export class GroupController {
   @Put('/updateLanguages/:groupId')
   updateGroupLanguages(
     @Param('groupId') groupId: string,
-    @Query('languages') languages: string[],
+    @Query('languages') languages: string,
     @Req() request: Request,
   ): Promise<void> {
     const loggedInUser = request['user'];

@@ -116,7 +116,7 @@ export class GroupService {
 
   public async updateGroupLanguages(
     groupId: string,
-    languages: string[],
+    languages: string,
     loggedInUser: string,
   ): Promise<void> {
     const user = await this.userModel.findOne({ email: loggedInUser });
@@ -136,7 +136,7 @@ export class GroupService {
     await this.groupModel.updateOne(
       { _id: groupId },
       {
-        languages: languages,
+        languages: languages.split(","),
         updatedBy: loggedInUser,
         updatedDate: new Date(),
       },

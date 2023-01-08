@@ -141,6 +141,15 @@ export class UserService {
     return await this.userModel.findById(userId);
   }
 
+  public async updateLanguages(languages: string[], loggedInUser: string): Promise<void> {
+    const user = await this.userModel.findOne({ email: loggedInUser });
+    await this.userModel.findByIdAndUpdate(user._id, {
+      languages: languages,
+      updatedBy: loggedInUser,
+      updatedDate: new Date(),
+    });
+  }
+
   public async toggleUserById(
     userId: string,
     loggedInUser: string,

@@ -50,6 +50,9 @@ export class User extends Location {
   photoUrl: string;
 
   @Prop()
+  languages: string[];
+
+  @Prop()
   registrationToken: string;
 
   @Prop()

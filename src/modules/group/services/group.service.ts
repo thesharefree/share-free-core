@@ -10,7 +10,10 @@ import {
   UserGroupActions,
   UserGroupActionsDocument,
 } from 'src/entities/user-group-actions.entity';
-import { UserGroupXref, UserGroupXrefDocument } from 'src/entities/user-group-xref.entity';
+import {
+  UserGroupXref,
+  UserGroupXrefDocument,
+} from 'src/entities/user-group-xref.entity';
 import { User, UserDocument } from 'src/entities/user.entity';
 import { MessageService } from 'src/modules/message/services/message.service';
 
@@ -89,7 +92,10 @@ export class GroupService {
       throw new HttpException('Invalid Group', 400);
     }
     const isOwner = extGroup.owner === loggedInUser;
-    const xrefResp = await this.userGroupXrefModel.findOne({ groupId: groupId, userId: user._id });
+    const xrefResp = await this.userGroupXrefModel.findOne({
+      groupId: groupId,
+      userId: user._id,
+    });
     const isAdmin = xrefResp?.isAdmin;
     if (!isOwner && !isAdmin) {
       throw new HttpException("You don't have admin access to this Group", 400);
@@ -101,6 +107,36 @@ export class GroupService {
         scheduleDays: group.scheduleDays,
         scheduleHour: group.scheduleHour,
         scheduleMinute: group.scheduleMinute,
+        scheduleTimezone: group.scheduleTimezone,
+        updatedBy: loggedInUser,
+        updatedDate: new Date(),
+      },
+    );
+  }
+
+  public async updateGroupLanguages(
+    groupId: string,
+    languages: string[],
+    loggedInUser: string,
+  ): Promise<void> {
+    const user = await this.userModel.findOne({ email: loggedInUser });
+    const extGroup = await this.groupModel.findById(groupId);
+    if (extGroup == null) {
+      throw new HttpException('Invalid Group', 400);
+    }
+    const isOwner = extGroup.owner === loggedInUser;
+    const xrefResp = await this.userGroupXrefModel.findOne({
+      groupId: groupId,
+      userId: user._id,
+    });
+    const isAdmin = xrefResp?.isAdmin;
+    if (!isOwner && !isAdmin) {
+      throw new HttpException("You don't have admin access to this Group", 400);
+    }
+    await this.groupModel.updateOne(
+      { _id: groupId },
+      {
+        languages: languages,
         updatedBy: loggedInUser,
         updatedDate: new Date(),
       },
@@ -162,7 +198,10 @@ export class GroupService {
       throw new HttpException('Invalid Group', 400);
     }
     const isOwner = extGroup.owner === loggedInUser;
-    const xrefResp = await this.userGroupXrefModel.findOne({ groupId: groupId, userId: user._id });
+    const xrefResp = await this.userGroupXrefModel.findOne({
+      groupId: groupId,
+      userId: user._id,
+    });
     const isAdmin = xrefResp?.isAdmin;
     if (!isOwner && !isAdmin) {
       throw new HttpException("You don't have admin access to this Group", 400);

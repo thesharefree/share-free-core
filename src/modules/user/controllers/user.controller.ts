@@ -84,6 +84,16 @@ export class UserController {
     return this.userService.getUserById(userId);
   }
 
+  @Auth('USER')
+  @Put('/updateLanguages')
+  updateGroupLanguages(
+    @Req() request: Request,
+    @Query('languages') languages: string[],
+  ): Promise<void> {
+    const loggedInUser = request['user'];
+    return this.userService.updateLanguages(languages, loggedInUser.email);
+  }
+
   @Auth('ADMIN')
   @Put('/toggle/:userId')
   toggleUserById(

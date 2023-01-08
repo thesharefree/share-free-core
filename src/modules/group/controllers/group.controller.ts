@@ -41,6 +41,17 @@ export class GroupController {
   }
 
   @Auth('USER')
+  @Put('/updateLanguages/:groupId')
+  updateGroupLanguages(
+    @Param('groupId') groupId: string,
+    @Query('languages') languages: string[],
+    @Req() request: Request,
+  ): Promise<void> {
+    const loggedInUser = request['user'];
+    return this.groupService.updateGroupLanguages(groupId, languages, loggedInUser.email);
+  }
+
+  @Auth('USER')
   @Put('/updateSchedule/:groupId')
   updateGroupSchedule(
     @Param('groupId') groupId: string,

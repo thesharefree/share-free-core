@@ -26,6 +26,9 @@ export class Group extends Location {
   banner: string;
 
   @Prop()
+  languages: string[];
+
+  @Prop()
   scheduleType: string;
 
   @Prop()
@@ -36,6 +39,9 @@ export class Group extends Location {
 
   @Prop()
   scheduleMinute: number;
+
+  @Prop()
+  scheduleTimezone: string;
 
   @Prop()
   callInProgress: boolean;

@@ -5,10 +5,7 @@ import {
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import {
-  House,
-  HouseDocument,
-} from 'src/entities/house.entity';
+import { House, HouseDocument } from 'src/entities/house.entity';
 import { Role, User, UserDocument } from 'src/entities/user.entity';
 
 @Injectable()
@@ -32,10 +29,7 @@ export class HouseService {
     return house;
   }
 
-  public async createHouse(
-    house: House,
-    loggedInUser: string,
-  ): Promise<House> {
+  public async createHouse(house: House, loggedInUser: string): Promise<House> {
     const owner = this.userModel.findOne({ email: house.owner });
     if (owner == null) {
       throw new HttpException('Invalid Owner', 400);
@@ -56,9 +50,7 @@ export class HouseService {
     house: House,
     loggedInUser: User,
   ): Promise<void> {
-    const extHouse = await this.houseModel.findById(
-      houseId,
-    );
+    const extHouse = await this.houseModel.findById(houseId);
     if (extHouse == null) {
       throw new HttpException('Invalid House', 400);
     }
@@ -89,9 +81,7 @@ export class HouseService {
     houseId: string,
     loggedInUser: User,
   ): Promise<void> {
-    const extHouse = await this.houseModel.findById(
-      houseId,
-    );
+    const extHouse = await this.houseModel.findById(houseId);
     if (
       extHouse.owner !== loggedInUser.email &&
       !loggedInUser.roles.includes(Role.ADMIN)
@@ -102,8 +92,7 @@ export class HouseService {
     const extension = fileNameParts[fileNameParts.length - 1];
     file = {
       ...file,
-      originalname:
-        'house/images/' + extHouse._id.toString() + '.' + extension,
+      originalname: 'house/images/' + extHouse._id.toString() + '.' + extension,
     };
     const storageUrl = await this.azureStorage.upload(file);
     console.log(JSON.stringify(storageUrl));
@@ -117,13 +106,8 @@ export class HouseService {
     );
   }
 
-  public async toggle(
-    houseId: string,
-    loggedInUser: User,
-  ): Promise<void> {
-    const extHouse = await this.houseModel.findById(
-      houseId,
-    );
+  public async toggle(houseId: string, loggedInUser: User): Promise<void> {
+    const extHouse = await this.houseModel.findById(houseId);
     if (extHouse == null) {
       throw new HttpException('Invalid House', 400);
     }
@@ -143,13 +127,8 @@ export class HouseService {
     );
   }
 
-  public async delete(
-    houseId: string,
-    loggedInUser: User,
-  ): Promise<void> {
-    const extHouse = await this.houseModel.findById(
-      houseId,
-    );
+  public async delete(houseId: string, loggedInUser: User): Promise<void> {
+    const extHouse = await this.houseModel.findById(houseId);
     if (extHouse == null) {
       throw new HttpException('Invalid House', 400);
     }
@@ -174,9 +153,7 @@ export class HouseService {
     category: string,
     loggedInUser: string,
   ): Promise<void> {
-    const extHouse = await this.houseModel.findById(
-      houseId,
-    );
+    const extHouse = await this.houseModel.findById(houseId);
     if (extHouse == null) {
       throw new HttpException('Invalid House', 400);
     }

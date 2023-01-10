@@ -9,6 +9,7 @@ import {
   Query,
   UseInterceptors,
   UploadedFile,
+  Delete,
 } from '@nestjs/common';
 import { Auth } from 'src/decorators/auth.decorator';
 import { HouseService } from '../services/house.service';
@@ -87,6 +88,16 @@ export class HouseController {
   ): Promise<void> {
     const loggedInUser = request['user'];
     return this.houseService.toggle(houseId, loggedInUser);
+  }
+
+  @Auth('USER', 'ADMIN')
+  @Delete('/delete/:houseId')
+  deleteHouse(
+    @Param('houseId') houseId: string,
+    @Req() request: Request,
+  ): Promise<void> {
+    const loggedInUser = request['user'];
+    return this.houseService.delete(houseId, loggedInUser);
   }
 
   @Auth('USER')

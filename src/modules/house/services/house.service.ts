@@ -143,6 +143,32 @@ export class HouseService {
     );
   }
 
+  public async delete(
+    houseId: string,
+    loggedInUser: User,
+  ): Promise<void> {
+    const extHouse = await this.houseModel.findById(
+      houseId,
+    );
+    if (extHouse == null) {
+      throw new HttpException('Invalid House', 400);
+    }
+    if (
+      extHouse.owner !== loggedInUser.email &&
+      !loggedInUser.roles.includes(Role.ADMIN)
+    ) {
+      throw new HttpException("You don't own this House", 400);
+    }
+    await this.houseModel.updateOne(
+      { _id: houseId },
+      {
+        deleted: !extHouse.deleted,
+        updatedBy: loggedInUser.email,
+        updatedDate: new Date(),
+      },
+    );
+  }
+
   public async report(
     houseId: string,
     category: string,

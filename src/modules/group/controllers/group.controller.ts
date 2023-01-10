@@ -2,6 +2,7 @@ import { UploadedFileMetadata } from '@nestjs/azure-storage';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -90,6 +91,16 @@ export class GroupController {
     return this.groupService.toggle(groupId, loggedInUser.email);
   }
 
+  @Auth('USER', 'ADMIN')
+  @Delete('/delete/:groupId')
+  deleteGroup(
+    @Param('groupId') groupId: string,
+    @Req() request: Request,
+  ): Promise<void> {
+    const loggedInUser = request['user'];
+    return this.groupService.delete(groupId, loggedInUser.email);
+  }
+
   @Auth('USER')
   @Put('/callInProgress/:groupId')
   callInProgress(
@@ -101,7 +112,7 @@ export class GroupController {
     return this.groupService.callInProgress(groupId, loggedInUser.email, callInProgress);
   }
 
-  @Auth('USER')
+  @Auth('USER', 'ADMIN')
   @Post('/toggleReport/:groupId')
   toggleReport(
     @Param('groupId') groupId: string,

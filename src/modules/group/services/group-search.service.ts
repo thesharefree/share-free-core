@@ -48,7 +48,7 @@ export class GroupSearchService {
     const searchedTopicGroups = await this.groupTopicService.getTopicsGroups(
       topicIds,
     );
-    const groups = searchedGroups.concat(searchedTopicGroups);
+    const groups = searchedGroups.concat(searchedTopicGroups).filter((group) => !group.deleted);
     const groupIds = groups.map((value) => value._id.toString());
     const uniqueGroups = groups.filter((group, pos) => {
       return groupIds.indexOf(group._id.toString()) == pos;

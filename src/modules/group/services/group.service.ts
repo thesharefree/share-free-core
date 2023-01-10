@@ -187,6 +187,23 @@ export class GroupService {
     );
   }
 
+  public async delete(groupId: string, loggedInUser: string): Promise<void> {
+    const extGroup = await this.groupModel.findById(groupId);
+    if (extGroup == null) {
+      throw new HttpException('Invalid Group', 400);
+    }
+    if (extGroup.owner !== loggedInUser) {
+      throw new HttpException("You don't own this Group", 400);
+    }
+    await this.groupModel.updateOne(
+      { _id: groupId },
+      {
+        deleted: true,
+        updatedDate: new Date(),
+      },
+    );
+  }
+
   public async callInProgress(
     groupId: string,
     loggedInUser: string,

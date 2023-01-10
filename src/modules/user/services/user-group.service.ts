@@ -34,7 +34,9 @@ export class UserGroupService {
       return xref.groupId;
     });
     const groupIds = myGroupIds.concat(joinedGroupIds);
-    return await this.groupModel.find().where('_id').in(groupIds);
+    const groups = await this.groupModel.find().where('_id').in(groupIds);
+    const liveGroups = groups.filter((group) => !group.deleted);
+    return liveGroups;
   }
 
   public async getUserActionedGroups(loggedInUser: string): Promise<Group[]> {
@@ -57,6 +59,8 @@ export class UserGroupService {
         (action) => action.groupId.toString() === group._id.toString(),
       );
     });
-    return groups;
+    const liveGroups = groups.filter((group) => !group.deleted);
+    return liveGroups;
+    return liveGroups;
   }
 }

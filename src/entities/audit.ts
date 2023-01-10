@@ -15,4 +15,7 @@ export class Audit {
 
   @Prop()
   updatedDate: Date;
+
+  @Prop()
+  deleted: boolean;
 }

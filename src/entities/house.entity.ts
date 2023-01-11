@@ -20,6 +20,8 @@ export class House extends Location {
 
   @Prop()
   banner: string;
+
+  groups: number;
 }
 
 export type HouseDocument = House & Document;

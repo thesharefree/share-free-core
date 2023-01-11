@@ -7,7 +7,7 @@ import { Group } from 'src/entities/group.entity';
 export class GroupSearchController {
   constructor(private readonly groupSearchService: GroupSearchService) {}
 
-  @Auth('USER')
+  @Auth('USER', 'ADMIN')
   @Get()
   searchGroups(@Query('keywords') keywords: string): Promise<Group[]> {
     return this.groupSearchService.searchGroups(keywords);

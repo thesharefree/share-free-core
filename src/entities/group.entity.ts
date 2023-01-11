@@ -47,6 +47,14 @@ export class Group extends Location {
   callInProgress: boolean;
 
   userActions: UserGroupActions;
+
+  users: number;
+
+  stars: number;
+
+  reports: number;
+
+  topics: string[];
 }
 
 export type GroupDocument = Group & Document;

@@ -2,10 +2,7 @@ import { AzureStorageModule } from '@nestjs/azure-storage';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Group, GroupSchema } from 'src/entities/group.entity';
-import {
-  House,
-  HouseSchema,
-} from 'src/entities/house.entity';
+import { House, HouseSchema } from 'src/entities/house.entity';
 import { Query, QuerySchema } from 'src/entities/query.entity';
 import {
   TopicQueryXref,
@@ -36,6 +33,10 @@ import { UserGroupService } from './services/user-group.service';
 import { UserHouseService } from './services/user-house.service';
 import { UserTopicService } from './services/user-topic.service';
 import { UserService } from './services/user.service';
+import {
+  GroupTopicXref,
+  GroupTopicXrefSchema,
+} from 'src/entities/group-topic-xref.entity';
 
 @Module({
   imports: [
@@ -47,9 +48,7 @@ import { UserService } from './services/user.service';
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MongooseModule.forFeature([{ name: Topic.name, schema: TopicSchema }]),
     MongooseModule.forFeature([{ name: Query.name, schema: QuerySchema }]),
-    MongooseModule.forFeature([
-      { name: House.name, schema: HouseSchema },
-    ]),
+    MongooseModule.forFeature([{ name: House.name, schema: HouseSchema }]),
     MongooseModule.forFeature([{ name: Group.name, schema: GroupSchema }]),
     MongooseModule.forFeature([
       { name: TopicQueryXref.name, schema: TopicQueryXrefSchema },
@@ -65,6 +64,9 @@ import { UserService } from './services/user.service';
     ]),
     MongooseModule.forFeature([
       { name: UserGroupActions.name, schema: UserGroupActionsSchema },
+    ]),
+    MongooseModule.forFeature([
+      { name: GroupTopicXref.name, schema: GroupTopicXrefSchema },
     ]),
   ],
   controllers: [

@@ -75,7 +75,7 @@ export class GroupTopicService {
       const topicIds = xrefResps.map((xref) => {
         return xref.topicId;
       });
-      return await this.topicModel.find().where('_id').in(topicIds);
+      return await this.topicModel.find().where('_id').in(topicIds).lean();
     }
   }
 
@@ -87,6 +87,6 @@ export class GroupTopicService {
     const groupIds = xrefResps.map((xref) => {
       return xref.groupId;
     });
-    return await this.groupModel.find().where('_id').in(groupIds);
+    return await this.groupModel.find().where('_id').in(groupIds).lean();
   }
 }

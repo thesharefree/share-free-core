@@ -19,8 +19,7 @@ export class PreauthMiddleware implements NestMiddleware {
         .auth()
         .verifyIdToken(token.replace('Bearer ', ''))
         .then(async (decodedToken) => {
-          const isPasswordFlow =
-            decodedToken.firebase.sign_in_provider === 'password';
+          const isPasswordFlow = decodedToken.firebase.sign_in_provider === 'password';
           console.log(JSON.stringify(decodedToken));
           const user = {
             email: decodedToken.email ? decodedToken.email : '',

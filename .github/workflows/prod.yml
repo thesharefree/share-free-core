@@ -1,29 +1,28 @@
 on:
   push:
     branches:
-      - master
+      - production
 name: Build & Deploy to ACI
 env:
   LOCATION: centralindia
-  RESOURCE_GROUP: ShareFreeAlphaARG
-  STORAGE_ACCOUNT: sharefreealphaasa
-  STORAGE_CONTAINER: sharefreealphaasc
-  CONTAINER_REGISTERY: sharefreealphaacr
-  # KEY_VAULT: ShareFreeAlphaAKV
+  RESOURCE_GROUP: ShareFreeARG
+  STORAGE_ACCOUNT: sharefreeasa
+  STORAGE_CONTAINER: sharefreeasc
+  CONTAINER_REGISTERY: sharefreeacr
   APP_NAME: share-free-core
-  WEBAPP_NAME: sharefreecorealpha
+  WEBAPP_NAME: sharefreecore
 jobs:
     build-and-deploy:
         runs-on: ubuntu-latest
         steps:
 
         - name: Checkout GitHub Action
-          uses: actions/checkout@master
+          uses: actions/checkout@production
           
         - name: Login to Azure
           uses: azure/login@v1
           with:
-            creds: ${{ secrets.ALPHA_AZURE_CREDENTIALS }}
+            creds: ${{ secrets.PROD_AZURE_CREDENTIALS }}
 
         - name: Set default location
           run: |
@@ -43,18 +42,13 @@ jobs:
         - name: Touch Azure Storage Container
           run: az storage container create -n ${{ env.STORAGE_CONTAINER }} --account-name ${{ env.STORAGE_ACCOUNT }} --sas-token ${{ env.SAS_TOKEN }}
 
-        # - name: Get env secrets
-        #   run: |
-        #     MONGO_DB_URL=$(az keyvault secret show --name "MONGO-DB-URL" --vault-name ${{ env.KEY_VAULT }} --query "value")
-        #     echo 'MONGO_DB_URL='$MONGO_DB_URL >> $GITHUB_ENV
-
         - name: Create .env
           run: |
             touch .env
             echo 'AZURE_STORAGE_ACCOUNT=${{ env.STORAGE_ACCOUNT }}' >> .env
             echo 'AZURE_STORAGE_CONTAINER=${{ env.STORAGE_CONTAINER }}' >> .env
             echo 'AZURE_STORAGE_SAS_KEY='${{ env.SAS_TOKEN }} >> .env
-            echo 'MONGO_DB_URL='${{ secrets.ALPHA_MONGODB_URL }} >> .env
+            echo 'MONGO_DB_URL='${{ secrets.MONGO_DB_URL }} >> .env
 
         - name: Create service-account.json
           run: |
@@ -65,8 +59,8 @@ jobs:
           uses: azure/docker-login@v1
           with:
             login-server: ${{ env.CONTAINER_REGISTERY }}.azurecr.io
-            username: ${{ secrets.ALPHA_AZURE_USERNAME }}
-            password: ${{ secrets.ALPHA_AZURE_PASSWORD }}
+            username: ${{ secrets.PROD_AZURE_USERNAME }}
+            password: ${{ secrets.PROD_AZURE_PASSWORD }}
         - run: |
             docker build . -t ${{ env.APP_NAME }}:1.0.${{ github.run_number }}
             docker tag ${{ env.APP_NAME }}:1.0.${{ github.run_number }} ${{ env.CONTAINER_REGISTERY }}.azurecr.io/builds/${{ env.APP_NAME }}:1.0.${{ github.run_number }}

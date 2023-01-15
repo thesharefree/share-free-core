@@ -56,11 +56,11 @@ jobs:
             echo 'AZURE_STORAGE_SAS_KEY="${{ env.SAS_TOKEN }}"' >> .env
             echo 'MONGO_DB_URL="${{ secrets.ALPHA_MONGODB_URL }}"' >> .env
             echo "${{ env.MONGO_DB_URL }}"
-            echo "${{ env.MONGO_DB_URL }}" | base64 -d
-            echo 'MONGO_DB_URL="${{ secrets.ALPHA_MONGODB_URL }} | base64 -d"'
-            echo 'MONGO_DB_URL="${{ secrets.ALPHA_MONGODB_URL }}" | base64 -d'
+            echo ${{ env.MONGO_DB_URL }}
+            echo 'MONGO_DB_URL=${{ secrets.ALPHA_MONGODB_URL }}'
+            echo 'MONGO_DB_URL="${{ secrets.ALPHA_MONGODB_URL }}"'
           env:
-            MONGO_DB_URL: ${{ secrets.ALPHA_MONGODB_URL }} | base64
+            MONGO_DB_URL: "${{ secrets.ALPHA_MONGODB_URL }}"
 
         - name: Create service-account.json
           run: |

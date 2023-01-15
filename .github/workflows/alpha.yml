@@ -54,7 +54,12 @@ jobs:
             echo 'AZURE_STORAGE_ACCOUNT=${{ env.STORAGE_ACCOUNT }}' >> .env
             echo 'AZURE_STORAGE_CONTAINER=${{ env.STORAGE_CONTAINER }}' >> .env
             echo 'AZURE_STORAGE_SAS_KEY='${{ env.SAS_TOKEN }} >> .env
-            printf 'MONGO_DB_URL=${{ secrets.ALPHA_MONGODB_URL }}' >> .env
+            mongodbUrl = ${{ env.MONGO_DB_URL }} | base64 -d
+            echo $mongodbUrl
+            echo 'MONGO_DB_URL='${{ env.MONGO_DB_URL }} | base64 -d >> .env
+            echo 'MONGO_DB_URL='$mongodbUrl >> .env
+          env:
+            MONGO_DB_URL: ${{ secrets.ALPHA_MONGODB_URL }} | base64
 
         - name: Create service-account.json
           run: |

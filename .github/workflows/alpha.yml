@@ -48,6 +48,12 @@ jobs:
         #     MONGO_DB_URL=$(az keyvault secret show --name "MONGO-DB-URL" --vault-name ${{ env.KEY_VAULT }} --query "value")
         #     echo 'MONGO_DB_URL='$MONGO_DB_URL >> $GITHUB_ENV
 
+
+        - name: Get Mongo DB URL
+          run: |
+            MONGO_DB_URL=$(az keyvault secret show --name "MONGO-DB-URL" --vault-name ${{ env.KEY_VAULT }} --query "value")
+            echo 'MONGO_DB_URL='${{ secrets.ALPHA_MONGODB_URL }} >> $GITHUB_ENV
+
         - name: Create .env
           run: |
             touch .env
@@ -55,6 +61,12 @@ jobs:
             echo 'AZURE_STORAGE_CONTAINER=${{ env.STORAGE_CONTAINER }}' >> .env
             echo 'AZURE_STORAGE_SAS_KEY="${{ env.SAS_TOKEN }}"' >> .env
             echo 'MONGO_DB_URL="${{ secrets.ALPHA_MONGODB_URL }}"' >> .env
+            echo "${{ env.MONGO_DB_URL }}"
+            echo "${{ env.MONGO_DB_URL }}" | base64 -d
+            echo 'MONGO_DB_URL="${{ secrets.ALPHA_MONGODB_URL }} | base64 -d"'
+            echo 'MONGO_DB_URL="${{ secrets.ALPHA_MONGODB_URL }}" | base64 -d'
+          env:
+            MONGO_DB_URL: "${{ secrets.ALPHA_MONGODB_URL }}" | base64
 
         - name: Create service-account.json
           run: |

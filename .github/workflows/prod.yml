@@ -2,13 +2,14 @@ on:
   push:
     branches:
       - production
-name: Build & Deploy to ACI
+name: Prod - Build & Deploy
 env:
   LOCATION: centralindia
   RESOURCE_GROUP: ShareFreeARG
   STORAGE_ACCOUNT: sharefreeasa
   STORAGE_CONTAINER: sharefreeasc
   CONTAINER_REGISTERY: sharefreeacr
+  KEY_VAULT: ShareFreeAKV
   APP_NAME: share-free-core
   WEBAPP_NAME: sharefreecore
 jobs:
@@ -42,13 +43,18 @@ jobs:
         - name: Touch Azure Storage Container
           run: az storage container create -n ${{ env.STORAGE_CONTAINER }} --account-name ${{ env.STORAGE_ACCOUNT }} --sas-token ${{ env.SAS_TOKEN }}
 
+        - name: Get env secrets
+          run: |
+            MONGO_DB_URL=$(az keyvault secret show --name "MONGO-DB-URL" --vault-name ${{ env.KEY_VAULT }} --query "value")
+            echo 'MONGO_DB_URL='$MONGO_DB_URL >> $GITHUB_ENV
+
         - name: Create .env
           run: |
             touch .env
             echo 'AZURE_STORAGE_ACCOUNT=${{ env.STORAGE_ACCOUNT }}' >> .env
             echo 'AZURE_STORAGE_CONTAINER=${{ env.STORAGE_CONTAINER }}' >> .env
             echo 'AZURE_STORAGE_SAS_KEY='${{ env.SAS_TOKEN }} >> .env
-            echo 'MONGO_DB_URL='${{ secrets.MONGO_DB_URL }} >> .env
+            echo 'MONGO_DB_URL='${{ env.MONGO_DB_URL }} >> .env
 
         - name: Create service-account.json
           run: |

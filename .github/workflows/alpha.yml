@@ -2,14 +2,14 @@ on:
   push:
     branches:
       - master
-name: Build & Deploy to ACI
+name: Alpha - Build & Deploy
 env:
   LOCATION: centralindia
   RESOURCE_GROUP: ShareFreeAlphaARG
   STORAGE_ACCOUNT: sharefreealphaasa
   STORAGE_CONTAINER: sharefreealphaasc
   CONTAINER_REGISTERY: sharefreealphaacr
-  # KEY_VAULT: ShareFreeAlphaAKV
+  KEY_VAULT: ShareFreeAlphaAKV
   APP_NAME: share-free-core
   WEBAPP_NAME: sharefreecorealpha
 jobs:
@@ -43,10 +43,10 @@ jobs:
         - name: Touch Azure Storage Container
           run: az storage container create -n ${{ env.STORAGE_CONTAINER }} --account-name ${{ env.STORAGE_ACCOUNT }} --sas-token ${{ env.SAS_TOKEN }}
 
-        # - name: Get env secrets
-        #   run: |
-        #     MONGO_DB_URL=$(az keyvault secret show --name "MONGO-DB-URL" --vault-name ${{ env.KEY_VAULT }} --query "value")
-        #     echo 'MONGO_DB_URL='$MONGO_DB_URL >> $GITHUB_ENV
+        - name: Get env secrets
+          run: |
+            MONGO_DB_URL=$(az keyvault secret show --name "MONGO-DB-URL" --vault-name ${{ env.KEY_VAULT }} --query "value")
+            echo 'MONGO_DB_URL='$MONGO_DB_URL >> $GITHUB_ENV
 
         - name: Create .env
           run: |
@@ -54,7 +54,7 @@ jobs:
             echo 'AZURE_STORAGE_ACCOUNT=${{ env.STORAGE_ACCOUNT }}' >> .env
             echo 'AZURE_STORAGE_CONTAINER=${{ env.STORAGE_CONTAINER }}' >> .env
             echo 'AZURE_STORAGE_SAS_KEY='${{ env.SAS_TOKEN }} >> .env
-            echo 'MONGO_DB_URL='${{ secrets.ALPHA_MONGODB_URL }} >> .env
+            echo 'MONGO_DB_URL='${{ env.MONGO_DB_URL }} >> .env
 
         - name: Create service-account.json
           run: |

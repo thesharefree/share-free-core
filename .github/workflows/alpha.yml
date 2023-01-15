@@ -66,7 +66,7 @@ jobs:
             echo 'MONGO_DB_URL="${{ secrets.ALPHA_MONGODB_URL }} | base64 -d"'
             echo 'MONGO_DB_URL="${{ secrets.ALPHA_MONGODB_URL }}" | base64 -d'
           env:
-            MONGO_DB_URL: "${{ secrets.ALPHA_MONGODB_URL }}" | base64
+            MONGO_DB_URL: ${{ secrets.ALPHA_MONGODB_URL }} | base64
 
         - name: Create service-account.json
           run: |

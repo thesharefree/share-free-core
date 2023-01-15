@@ -48,12 +48,6 @@ jobs:
         #     MONGO_DB_URL=$(az keyvault secret show --name "MONGO-DB-URL" --vault-name ${{ env.KEY_VAULT }} --query "value")
         #     echo 'MONGO_DB_URL='$MONGO_DB_URL >> $GITHUB_ENV
 
-
-        - name: Get Mongo DB URL
-          run: |
-            MONGO_DB_URL=$(az keyvault secret show --name "MONGO-DB-URL" --vault-name ${{ env.KEY_VAULT }} --query "value")
-            echo 'MONGO_DB_URL='${{ secrets.ALPHA_MONGODB_URL }} >> $GITHUB_ENV
-
         - name: Create .env
           run: |
             touch .env

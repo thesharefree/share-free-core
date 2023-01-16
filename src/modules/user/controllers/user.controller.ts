@@ -69,7 +69,7 @@ export class UserController {
     @UploadedFile() file: UploadedFileMetadata,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.userService.uploadPhoto(file, loggedInUser);
+    return this.userService.uploadPhoto(file, loggedInUser.email);
   }
 
   @Auth('ADMIN')

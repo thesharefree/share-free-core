@@ -48,16 +48,13 @@ export class HouseService {
   public async updateHouse(
     houseId: string,
     house: House,
-    loggedInUser: User,
+    loggedInUser: string,
   ): Promise<void> {
     const extHouse = await this.houseModel.findById(houseId);
     if (extHouse == null) {
       throw new HttpException('Invalid House', 400);
     }
-    if (
-      extHouse.owner !== loggedInUser.email &&
-      !loggedInUser.roles.includes(Role.ADMIN)
-    ) {
+    if (extHouse.owner !== loggedInUser) {
       throw new HttpException("You don't own this House", 400);
     }
     await this.houseModel.updateOne(
@@ -70,7 +67,7 @@ export class HouseService {
         city: house.city,
         province: house.province,
         country: house.country,
-        updatedBy: loggedInUser.email,
+        updatedBy: loggedInUser,
         updatedDate: new Date(),
       },
     );
@@ -79,13 +76,10 @@ export class HouseService {
   public async uploadBanner(
     file: UploadedFileMetadata,
     houseId: string,
-    loggedInUser: User,
+    loggedInUser: string,
   ): Promise<void> {
     const extHouse = await this.houseModel.findById(houseId);
-    if (
-      extHouse.owner !== loggedInUser.email &&
-      !loggedInUser.roles.includes(Role.ADMIN)
-    ) {
+    if (extHouse.owner !== loggedInUser) {
       throw new HttpException("You don't own this House", 400);
     }
     const fileNameParts = file.originalname.split('.');
@@ -100,49 +94,43 @@ export class HouseService {
       { _id: extHouse._id },
       {
         banner: storageUrl,
-        updatedBy: loggedInUser.email,
+        updatedBy: loggedInUser,
         updatedDate: new Date(),
       },
     );
   }
 
-  public async toggle(houseId: string, loggedInUser: User): Promise<void> {
+  public async toggle(houseId: string, loggedInUser: string): Promise<void> {
     const extHouse = await this.houseModel.findById(houseId);
     if (extHouse == null) {
       throw new HttpException('Invalid House', 400);
     }
-    if (
-      extHouse.owner !== loggedInUser.email &&
-      !loggedInUser.roles.includes(Role.ADMIN)
-    ) {
+    if (extHouse.owner !== loggedInUser) {
       throw new HttpException("You don't own this House", 400);
     }
     await this.houseModel.updateOne(
       { _id: houseId },
       {
         active: !extHouse.active,
-        updatedBy: loggedInUser.email,
+        updatedBy: loggedInUser,
         updatedDate: new Date(),
       },
     );
   }
 
-  public async delete(houseId: string, loggedInUser: User): Promise<void> {
+  public async delete(houseId: string, loggedInUser: string): Promise<void> {
     const extHouse = await this.houseModel.findById(houseId);
     if (extHouse == null) {
       throw new HttpException('Invalid House', 400);
     }
-    if (
-      extHouse.owner !== loggedInUser.email &&
-      !loggedInUser.roles.includes(Role.ADMIN)
-    ) {
+    if (extHouse.owner !== loggedInUser) {
       throw new HttpException("You don't own this House", 400);
     }
     await this.houseModel.updateOne(
       { _id: houseId },
       {
         deleted: !extHouse.deleted,
-        updatedBy: loggedInUser.email,
+        updatedBy: loggedInUser,
         updatedDate: new Date(),
       },
     );

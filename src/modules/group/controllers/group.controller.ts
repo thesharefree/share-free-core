@@ -72,7 +72,7 @@ export class GroupController {
     @UploadedFile() file: UploadedFileMetadata,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.groupService.uploadBanner(file, groupId, loggedInUser);
+    return this.groupService.uploadBanner(file, groupId, loggedInUser.email);
   }
 
   @Auth('USER')

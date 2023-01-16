@@ -30,15 +30,9 @@ export class HouseController {
 
   @Auth('USER', 'ADMIN')
   @Post('/create')
-  createHouse(
-    @Req() request: Request,
-    @Body() house: House,
-  ): Promise<House> {
+  createHouse(@Req() request: Request, @Body() house: House): Promise<House> {
     const loggedInUser = request['user'];
-    return this.houseService.createHouse(
-      house,
-      loggedInUser.email,
-    );
+    return this.houseService.createHouse(house, loggedInUser.email);
   }
 
   @Auth('USER', 'ADMIN')
@@ -49,11 +43,7 @@ export class HouseController {
     @Body() house: House,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.houseService.updateHouse(
-      houseId,
-      house,
-      loggedInUser,
-    );
+    return this.houseService.updateHouse(houseId, house, loggedInUser.email);
   }
 
   @Auth('USER')
@@ -65,18 +55,12 @@ export class HouseController {
     @UploadedFile() file: UploadedFileMetadata,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.houseService.uploadBanner(
-      file,
-      houseId,
-      loggedInUser,
-    );
+    return this.houseService.uploadBanner(file, houseId, loggedInUser.email);
   }
 
   @Auth('USER', 'ADMIN')
   @Get('/:houseId')
-  getHouse(
-    @Param('houseId') houseId: string,
-  ): Promise<House> {
+  getHouse(@Param('houseId') houseId: string): Promise<House> {
     return this.houseService.getHouse(houseId);
   }
 
@@ -87,7 +71,7 @@ export class HouseController {
     @Req() request: Request,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.houseService.toggle(houseId, loggedInUser);
+    return this.houseService.toggle(houseId, loggedInUser.email);
   }
 
   @Auth('USER', 'ADMIN')
@@ -97,7 +81,7 @@ export class HouseController {
     @Req() request: Request,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.houseService.delete(houseId, loggedInUser);
+    return this.houseService.delete(houseId, loggedInUser.email);
   }
 
   @Auth('USER')
@@ -108,10 +92,6 @@ export class HouseController {
     @Req() request: Request,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.houseService.report(
-      houseId,
-      category,
-      loggedInUser.email,
-    );
+    return this.houseService.report(houseId, category, loggedInUser.email);
   }
 }

@@ -52,6 +52,7 @@ export class GroupUserService {
     await createdUserGroupRequestXref.save();
     const owner = await this.userModel.findOne({ email: group.owner });
     await this.messageService.notifyGeneral(
+      group._id.toString(),
       group.name,
       `${user.name} asked to join`,
       [owner.registrationToken.toString()],
@@ -120,9 +121,12 @@ export class GroupUserService {
     const xref = this.newUserGroupXref(userId, groupId, loggedInUser);
     const createdUserGroupXref = new this.userGroupXrefModel(xref);
     await createdUserGroupXref.save();
-    await this.messageService.notifyGeneral(group.name, `Join request accepted`, [
-      user.registrationToken.toString(),
-    ]);
+    await this.messageService.notifyGeneral(
+      group._id.toString(),
+      group.name,
+      `Join request accepted`,
+      [user.registrationToken.toString()],
+    );
   }
 
   private newUserGroupRequestXref(
@@ -190,8 +194,11 @@ export class GroupUserService {
       },
     );
     await this.messageService.notifyGeneral(
+      group._id.toString(),
       group.name,
-      xrefResp.isAdmin ? `You are not an admin anymore` : `You are now an admin`,
+      xrefResp.isAdmin
+        ? `You are not an admin anymore`
+        : `You are now an admin`,
       [user.registrationToken.toString()],
     );
   }
@@ -217,6 +224,7 @@ export class GroupUserService {
       groupId: groupId,
     });
     await this.messageService.notifyGeneral(
+      group._id.toString(),
       group.name,
       `You were removed from the group`,
       [user.registrationToken.toString()],
@@ -241,6 +249,7 @@ export class GroupUserService {
     });
     const owner = await this.userModel.findOne({ email: group.owner });
     await this.messageService.notifyGeneral(
+      group._id.toString(),
       group.name,
       `${user.name} left the group`,
       [owner.registrationToken.toString()],

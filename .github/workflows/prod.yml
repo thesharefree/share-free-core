@@ -53,7 +53,7 @@ jobs:
             touch .env
             echo 'AZURE_STORAGE_ACCOUNT=${{ env.STORAGE_ACCOUNT }}' >> .env
             echo 'AZURE_STORAGE_CONTAINER=${{ env.STORAGE_CONTAINER }}' >> .env
-            echo 'AZURE_STORAGE_SAS_KEY='${{ env.SAS_TOKEN }} >> .env
+            echo 'AZURE_STORAGE_SAS_KEY='"${{ env.SAS_TOKEN }}" >> .env
             echo 'MONGO_DB_URL='${{ env.MONGO_DB_URL }} >> .env
 
         - name: Create service-account.json

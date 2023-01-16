@@ -80,18 +80,7 @@ export class GroupController {
   uploadBanner(
     @Req() request: Request,
     @Param('groupId') groupId: string,
-    @UploadedFile(
-      new ParseFilePipeBuilder()
-        .addFileTypeValidator({
-          fileType: /[\/.](gif|jpg|jpeg|tiff|png)$/i,
-        })
-        .addMaxSizeValidator({
-          maxSize: 2000000
-        })
-        .build({
-          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
-        }),
-    )
+    @UploadedFile()
     file: UploadedFileMetadata,
   ): Promise<void> {
     const loggedInUser = request['user'];

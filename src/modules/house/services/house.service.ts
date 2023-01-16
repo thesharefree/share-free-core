@@ -149,7 +149,7 @@ export class HouseService {
         updatedDate: new Date(),
       },
     );
-    this.houseGroupService.updateGroupsOfDeletedHouse(houseId, loggedInUser.email);
+    await this.houseGroupService.updateGroupsOfDeletedHouse(houseId, loggedInUser.email);
   }
 
   public async report(

@@ -43,7 +43,7 @@ export class HouseController {
     @Body() house: House,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.houseService.updateHouse(houseId, house, loggedInUser.email);
+    return this.houseService.updateHouse(houseId, house, loggedInUser);
   }
 
   @Auth('USER')
@@ -55,7 +55,7 @@ export class HouseController {
     @UploadedFile() file: UploadedFileMetadata,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.houseService.uploadBanner(file, houseId, loggedInUser.email);
+    return this.houseService.uploadBanner(file, houseId, loggedInUser);
   }
 
   @Auth('USER', 'ADMIN')
@@ -71,7 +71,7 @@ export class HouseController {
     @Req() request: Request,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.houseService.toggle(houseId, loggedInUser.email);
+    return this.houseService.toggle(houseId, loggedInUser);
   }
 
   @Auth('USER', 'ADMIN')
@@ -81,7 +81,7 @@ export class HouseController {
     @Req() request: Request,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.houseService.delete(houseId, loggedInUser.email);
+    return this.houseService.delete(houseId, loggedInUser);
   }
 
   @Auth('USER')

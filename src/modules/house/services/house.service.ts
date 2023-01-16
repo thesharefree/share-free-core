@@ -5,16 +5,19 @@ import {
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { Group, GroupDocument } from 'src/entities/group.entity';
 import { House, HouseDocument } from 'src/entities/house.entity';
 import { Role, User, UserDocument } from 'src/entities/user.entity';
+import { HouseGroupService } from './house-group.service';
 
 @Injectable()
 export class HouseService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
-    @InjectModel(House.name)
-    private readonly houseModel: Model<HouseDocument>,
+    @InjectModel(House.name) private readonly houseModel: Model<HouseDocument>,
+    @InjectModel(Group.name) private readonly groupModel: Model<GroupDocument>,
     private readonly azureStorage: AzureStorageService,
+    private readonly houseGroupService: HouseGroupService,
   ) {}
 
   public async getAllHouses(): Promise<House[]> {
@@ -48,13 +51,16 @@ export class HouseService {
   public async updateHouse(
     houseId: string,
     house: House,
-    loggedInUser: string,
+    loggedInUser: User,
   ): Promise<void> {
     const extHouse = await this.houseModel.findById(houseId);
     if (extHouse == null) {
       throw new HttpException('Invalid House', 400);
     }
-    if (extHouse.owner !== loggedInUser) {
+    if (
+      extHouse.owner !== loggedInUser.email &&
+      !loggedInUser.roles.includes(Role.ADMIN)
+    ) {
       throw new HttpException("You don't own this House", 400);
     }
     await this.houseModel.updateOne(
@@ -67,7 +73,7 @@ export class HouseService {
         city: house.city,
         province: house.province,
         country: house.country,
-        updatedBy: loggedInUser,
+        updatedBy: loggedInUser.email,
         updatedDate: new Date(),
       },
     );
@@ -76,10 +82,13 @@ export class HouseService {
   public async uploadBanner(
     file: UploadedFileMetadata,
     houseId: string,
-    loggedInUser: string,
+    loggedInUser: User,
   ): Promise<void> {
     const extHouse = await this.houseModel.findById(houseId);
-    if (extHouse.owner !== loggedInUser) {
+    if (
+      extHouse.owner !== loggedInUser.email &&
+      !loggedInUser.roles.includes(Role.ADMIN)
+    ) {
       throw new HttpException("You don't own this House", 400);
     }
     const fileNameParts = file.originalname.split('.');
@@ -94,46 +103,53 @@ export class HouseService {
       { _id: extHouse._id },
       {
         banner: storageUrl,
-        updatedBy: loggedInUser,
+        updatedBy: loggedInUser.email,
         updatedDate: new Date(),
       },
     );
   }
 
-  public async toggle(houseId: string, loggedInUser: string): Promise<void> {
+  public async toggle(houseId: string, loggedInUser: User): Promise<void> {
     const extHouse = await this.houseModel.findById(houseId);
     if (extHouse == null) {
       throw new HttpException('Invalid House', 400);
     }
-    if (extHouse.owner !== loggedInUser) {
+    if (
+      extHouse.owner !== loggedInUser.email &&
+      !loggedInUser.roles.includes(Role.ADMIN)
+    ) {
       throw new HttpException("You don't own this House", 400);
     }
     await this.houseModel.updateOne(
       { _id: houseId },
       {
         active: !extHouse.active,
-        updatedBy: loggedInUser,
+        updatedBy: loggedInUser.email,
         updatedDate: new Date(),
       },
     );
   }
 
-  public async delete(houseId: string, loggedInUser: string): Promise<void> {
+  public async delete(houseId: string, loggedInUser: User): Promise<void> {
     const extHouse = await this.houseModel.findById(houseId);
     if (extHouse == null) {
       throw new HttpException('Invalid House', 400);
     }
-    if (extHouse.owner !== loggedInUser) {
+    if (
+      extHouse.owner !== loggedInUser.email &&
+      !loggedInUser.roles.includes(Role.ADMIN)
+    ) {
       throw new HttpException("You don't own this House", 400);
     }
     await this.houseModel.updateOne(
       { _id: houseId },
       {
         deleted: !extHouse.deleted,
-        updatedBy: loggedInUser,
+        updatedBy: loggedInUser.email,
         updatedDate: new Date(),
       },
     );
+    this.houseGroupService.updateGroupsOfDeletedHouse(houseId, loggedInUser.email);
   }
 
   public async report(

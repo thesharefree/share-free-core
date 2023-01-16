@@ -23,4 +23,18 @@ export class HouseGroupService {
       return await this.groupModel.find({ houseId: house._id });
     }
   }
+
+  public async updateGroupsOfDeletedHouse(houseId: string, loggedInUser: string): Promise<void> {
+    const groups = await this.groupModel.find({ houseId: houseId });
+    for(const group of groups) {
+      await this.groupModel.updateOne(
+        { _id: group._id },
+        {
+          houseId: null,
+          updatedBy: loggedInUser,
+          updatedDate: new Date(),
+        },
+      );
+    }
+  }
 }

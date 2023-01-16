@@ -136,7 +136,7 @@ export class GroupService {
     await this.groupModel.updateOne(
       { _id: groupId },
       {
-        languages: languages.split(","),
+        languages: languages.split(','),
         updatedBy: loggedInUser,
         updatedDate: new Date(),
       },

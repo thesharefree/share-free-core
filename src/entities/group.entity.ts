@@ -48,7 +48,7 @@ export class Group extends Location {
 
   userActions: UserGroupActions;
 
-  users: number;
+  members: number;
 
   stars: number;
 

@@ -1,4 +1,7 @@
-import { AzureStorageFileInterceptor, UploadedFileMetadata } from '@nestjs/azure-storage';
+import {
+  AzureStorageFileInterceptor,
+  UploadedFileMetadata,
+} from '@nestjs/azure-storage';
 import {
   Body,
   Controller,
@@ -80,11 +83,21 @@ export class GroupController {
   uploadBanner(
     @Req() request: Request,
     @Param('groupId') groupId: string,
-    @UploadedFile()
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({
+          fileType: /[\.?\/?]+(gif|jpe?g|tiff?|png|webp|bmp)$/i,
+        })
+        .addMaxSizeValidator({
+          maxSize: 2000000,
+        })
+        .build({
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        }),
+    )
     file: UploadedFileMetadata,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    console.log('File Received', JSON.stringify(file));
     return this.groupService.uploadBanner(file, groupId, loggedInUser.email);
   }
 

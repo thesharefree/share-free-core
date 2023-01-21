@@ -10,6 +10,8 @@ import {
   UseInterceptors,
   UploadedFile,
   Delete,
+  HttpStatus,
+  ParseFilePipeBuilder,
 } from '@nestjs/common';
 import { Auth } from 'src/decorators/auth.decorator';
 import { HouseService } from '../services/house.service';
@@ -52,7 +54,19 @@ export class HouseController {
   uploadBanner(
     @Req() request: Request,
     @Param('houseId') houseId: string,
-    @UploadedFile() file: UploadedFileMetadata,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({
+          fileType: /[\.?\/?]+(gif|jpe?g|tiff?|png|webp|bmp)$/i,
+        })
+        .addMaxSizeValidator({
+          maxSize: 2000000,
+        })
+        .build({
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        }),
+    )
+    file: UploadedFileMetadata,
   ): Promise<void> {
     const loggedInUser = request['user'];
     return this.houseService.uploadBanner(file, houseId, loggedInUser);

@@ -185,7 +185,11 @@ export class MessageService {
   //   }
   // }
 
-  public async notifyConference(groupId: string, loggedInUserId: string, callInProgress: boolean) {
+  public async notifyConference(
+    groupId: string,
+    loggedInUserId: string,
+    callInProgress: boolean,
+  ) {
     const group = await this.groupModel.findById(groupId);
     var messagePayload: messaging.MulticastMessage = {
       data: {
@@ -201,7 +205,9 @@ export class MessageService {
     let userIds = xrefResp.map((xref) => {
       return xref.userId;
     });
-    userIds.splice(userIds.indexOf(loggedInUserId), 1);
+    if (userIds.includes(loggedInUserId)) {
+      userIds.splice(userIds.indexOf(loggedInUserId), 1);
+    }
     const users = await this.userModel.where('_id').in(userIds);
     const userTokens = users.map((user) => {
       return user.registrationToken;
@@ -214,7 +220,12 @@ export class MessageService {
     }
   }
 
-  public async notifyGeneral(groupId: string, title: string, message: string, userTokens: string[]) {
+  public async notifyGeneral(
+    groupId: string,
+    title: string,
+    message: string,
+    userTokens: string[],
+  ) {
     var messagePayload: messaging.MulticastMessage = {
       data: {
         type: 'GENERAL',

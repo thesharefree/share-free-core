@@ -229,7 +229,7 @@ export class GroupService {
         callInProgress: callInProgress,
       },
     );
-    await this.messageService.notifyConference(groupId, callInProgress);
+    await this.messageService.notifyConference(groupId, user._id.toString(), callInProgress);
   }
 
   public async toggleReport(

@@ -46,7 +46,7 @@ export class Group extends Location {
   @Prop()
   callInProgress: boolean;
 
-  userActions: UserGroupActions;
+  userActions: UserGroupActions[];
 
   members: number;
 

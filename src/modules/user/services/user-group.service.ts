@@ -33,31 +33,96 @@ export class UserGroupService {
 
   public async getUserGroups(loggedInUser: string): Promise<Group[]> {
     const user = await this.userModel.findOne({ email: loggedInUser });
-    const userGroups = await this.groupModel.find({ owner: loggedInUser });
-    const myGroupIds = userGroups.map((group) => {
-      return group._id;
-    });
-    const xrefResps = await this.userGroupXrefModel.find({ userId: user._id });
-    const joinedGroupIds = xrefResps.map((xref) => {
-      return xref.groupId;
-    });
-    const groupIds = myGroupIds.concat(joinedGroupIds);
-    const groups = await this.groupModel
-      .find()
-      .where('_id')
-      .in(groupIds)
-      .lean();
-    const liveGroups = groups.filter((group) => !group.deleted);
-    for (const group of liveGroups) {
-      const users = await this.userGroupXrefModel
-        .find({ groupId: group._id })
-        .count();
-      group.users = users;
-      const userActions = await this.userGroupActionsModel.find({
-        groupId: group._id,
-      });
-      group.stars = userActions.filter((action) => action.starred).length;
-      group.reports = userActions.filter((action) => action.reported).length;
+    const groups = await this.groupModel.aggregate([
+      {
+        $match: {
+          deleted: {
+            $ne: true,
+          },
+        },
+      },
+      {
+        $addFields: {
+          groupId: {
+            $toString: '$_id',
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: 'usergroupxrefs',
+          localField: 'groupId',
+          foreignField: 'groupId',
+          as: 'userXrefs',
+        },
+      },
+      {
+        $addFields: {
+          members: {
+            $size: '$userXrefs',
+          },
+        },
+      },
+      {
+        $addFields: {
+          userIds: {
+            $map: {
+              input: '$userXrefs',
+              in: '$$this.userId',
+            },
+          },
+        },
+      },
+      {
+        $match: {
+          $or: [
+            {
+              owner: loggedInUser,
+            },
+            {
+              userIds: user._id.toString(),
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: 'usergroupactions',
+          localField: 'groupId',
+          foreignField: 'groupId',
+          as: 'userActions',
+        },
+      },
+      {
+        $addFields: {
+          stars: {
+            $size: {
+              $filter: {
+                input: '$userActions',
+                cond: {
+                  $eq: ['$$this.starred', true],
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          reports: {
+            $size: {
+              $filter: {
+                input: '$userActions',
+                cond: {
+                  $eq: ['$$this.reported', true],
+                },
+              },
+            },
+          },
+        },
+      },
+    ]);
+    for (const group of groups) {
       const xrefResps = await this.groupTopicXrefModel.find({
         groupId: group._id,
       });
@@ -68,38 +133,94 @@ export class UserGroupService {
       const topicNames = topics.map((topic) => topic.name);
       group.topics = topicNames;
     }
-    return liveGroups;
+    return groups;
   }
 
   public async getUserActionedGroups(loggedInUser: string): Promise<Group[]> {
     const user = await this.userModel.findOne({ email: loggedInUser });
-    const userActions = await this.userGroupActionsModel
-      .find({
-        userId: user._id,
-      })
-      .lean();
-    const groupIds = userActions.map((action) => {
-      return action.groupId;
-    });
-    const groups = await this.groupModel
-      .find()
-      .where('_id')
-      .in(groupIds)
-      .lean();
-    const liveGroups = groups.filter((group) => !group.deleted);
-    for (const group of liveGroups) {
-      group.userActions = userActions.find(
-        (action) => action.groupId.toString() === group._id.toString(),
-      );
-      const users = await this.userGroupXrefModel
-        .find({ groupId: group._id })
-        .count();
-      group.users = users;
-      const actions = await this.userGroupActionsModel.find({
-        groupId: group._id,
-      });
-      group.stars = actions.filter((action) => action.starred).length;
-      group.reports = actions.filter((action) => action.reported).length;
+    const groups = await this.groupModel.aggregate([
+      {
+        $match: {
+          deleted: {
+            $ne: true,
+          },
+        },
+      },
+      {
+        $addFields: {
+          groupId: {
+            $toString: '$_id',
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: 'usergroupxrefs',
+          localField: 'groupId',
+          foreignField: 'groupId',
+          as: 'userXrefs',
+        },
+      },
+      {
+        $lookup: {
+          from: 'usergroupactions',
+          localField: 'groupId',
+          foreignField: 'groupId',
+          as: 'userActions',
+        },
+      },
+      {
+        $addFields: {
+          members: {
+            $size: '$userXrefs',
+          },
+        },
+      },
+      {
+        $addFields: {
+          actionUserIds: {
+            $map: {
+              input: '$userActions',
+              in: '$$this.userId',
+            },
+          },
+        },
+      },
+      {
+        $match: {
+          actionUserIds: user._id.toString(),
+        },
+      },
+      {
+        $addFields: {
+          stars: {
+            $size: {
+              $filter: {
+                input: '$userActions',
+                cond: {
+                  $eq: ['$$this.starred', true],
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          reports: {
+            $size: {
+              $filter: {
+                input: '$userActions',
+                cond: {
+                  $eq: ['$$this.reported', true],
+                },
+              },
+            },
+          },
+        },
+      },
+    ]);
+    for (const group of groups) {
       const xrefResps = await this.groupTopicXrefModel.find({
         groupId: group._id,
       });
@@ -110,6 +231,6 @@ export class UserGroupService {
       const topicNames = topics.map((topic) => topic.name);
       group.topics = topicNames;
     }
-    return liveGroups;
+    return groups;
   }
 }

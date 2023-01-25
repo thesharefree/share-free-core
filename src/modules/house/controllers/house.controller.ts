@@ -10,6 +10,8 @@ import {
   UseInterceptors,
   UploadedFile,
   Delete,
+  HttpStatus,
+  ParseFilePipeBuilder,
 } from '@nestjs/common';
 import { Auth } from 'src/decorators/auth.decorator';
 import { HouseService } from '../services/house.service';
@@ -30,15 +32,9 @@ export class HouseController {
 
   @Auth('USER', 'ADMIN')
   @Post('/create')
-  createHouse(
-    @Req() request: Request,
-    @Body() house: House,
-  ): Promise<House> {
+  createHouse(@Req() request: Request, @Body() house: House): Promise<House> {
     const loggedInUser = request['user'];
-    return this.houseService.createHouse(
-      house,
-      loggedInUser.email,
-    );
+    return this.houseService.createHouse(house, loggedInUser.email);
   }
 
   @Auth('USER', 'ADMIN')
@@ -49,11 +45,7 @@ export class HouseController {
     @Body() house: House,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.houseService.updateHouse(
-      houseId,
-      house,
-      loggedInUser,
-    );
+    return this.houseService.updateHouse(houseId, house, loggedInUser);
   }
 
   @Auth('USER')
@@ -62,21 +54,27 @@ export class HouseController {
   uploadBanner(
     @Req() request: Request,
     @Param('houseId') houseId: string,
-    @UploadedFile() file: UploadedFileMetadata,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({
+          fileType: /[\.?\/?]+(gif|jpe?g|tiff?|png|webp|bmp)$/i,
+        })
+        .addMaxSizeValidator({
+          maxSize: 2000000,
+        })
+        .build({
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        }),
+    )
+    file: UploadedFileMetadata,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.houseService.uploadBanner(
-      file,
-      houseId,
-      loggedInUser,
-    );
+    return this.houseService.uploadBanner(file, houseId, loggedInUser);
   }
 
   @Auth('USER', 'ADMIN')
   @Get('/:houseId')
-  getHouse(
-    @Param('houseId') houseId: string,
-  ): Promise<House> {
+  getHouse(@Param('houseId') houseId: string): Promise<House> {
     return this.houseService.getHouse(houseId);
   }
 
@@ -108,10 +106,6 @@ export class HouseController {
     @Req() request: Request,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.houseService.report(
-      houseId,
-      category,
-      loggedInUser.email,
-    );
+    return this.houseService.report(houseId, category, loggedInUser.email);
   }
 }

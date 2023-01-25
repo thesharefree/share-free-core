@@ -5,16 +5,19 @@ import {
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { Group, GroupDocument } from 'src/entities/group.entity';
 import { House, HouseDocument } from 'src/entities/house.entity';
 import { Role, User, UserDocument } from 'src/entities/user.entity';
+import { HouseGroupService } from './house-group.service';
 
 @Injectable()
 export class HouseService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
-    @InjectModel(House.name)
-    private readonly houseModel: Model<HouseDocument>,
+    @InjectModel(House.name) private readonly houseModel: Model<HouseDocument>,
+    @InjectModel(Group.name) private readonly groupModel: Model<GroupDocument>,
     private readonly azureStorage: AzureStorageService,
+    private readonly houseGroupService: HouseGroupService,
   ) {}
 
   public async getAllHouses(): Promise<House[]> {
@@ -33,6 +36,23 @@ export class HouseService {
     const owner = this.userModel.findOne({ email: house.owner });
     if (owner == null) {
       throw new HttpException('Invalid Owner', 400);
+    }
+    const owenedHouses = await this.houseModel.aggregate([
+      {
+        $match: {
+          deleted: {
+            $ne: true,
+          },
+        },
+      },
+      {
+        $match: {
+          owner: loggedInUser,
+        },
+      },
+    ]);
+    if(owenedHouses.length >= 10) {
+      throw new HttpException('You cannot own more than 10 houses', 400);
     }
     house['_id'] = null;
     house.active = true;
@@ -146,6 +166,7 @@ export class HouseService {
         updatedDate: new Date(),
       },
     );
+    await this.houseGroupService.updateGroupsOfDeletedHouse(houseId, loggedInUser.email);
   }
 
   public async report(

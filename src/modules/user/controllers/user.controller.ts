@@ -4,7 +4,9 @@ import {
   Controller,
   Get,
   HttpException,
+  HttpStatus,
   Param,
+  ParseFilePipeBuilder,
   Post,
   Put,
   Query,
@@ -66,10 +68,21 @@ export class UserController {
   @UseInterceptors(FileInterceptor('file'))
   uploadPhoto(
     @Req() request: Request,
-    @UploadedFile() file: UploadedFileMetadata,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({
+          fileType: /[\.?\/?]+(gif|jpe?g|tiff?|png|webp|bmp)$/i,
+        })
+        .addMaxSizeValidator({
+          maxSize: 2000000
+        })
+        .build({
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
+        }),
+    ) file: UploadedFileMetadata,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.userService.uploadPhoto(file, loggedInUser);
+    return this.userService.uploadPhoto(file, loggedInUser.email);
   }
 
   @Auth('ADMIN')

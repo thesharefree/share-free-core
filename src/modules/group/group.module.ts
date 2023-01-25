@@ -40,6 +40,7 @@ import { GroupSearchService } from './services/group-search.service';
 import { GroupTopicService } from './services/group-topic.service';
 import { GroupUserService } from './services/group-user.service';
 import { GroupService } from './services/group.service';
+import { House, HouseSchema } from 'src/entities/house.entity';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { GroupService } from './services/group.service';
     }),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MongooseModule.forFeature([{ name: Topic.name, schema: TopicSchema }]),
+    MongooseModule.forFeature([{ name: House.name, schema: HouseSchema }]),
     MongooseModule.forFeature([{ name: Query.name, schema: QuerySchema }]),
     MongooseModule.forFeature([{ name: Group.name, schema: GroupSchema }]),
     MongooseModule.forFeature([

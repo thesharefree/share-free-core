@@ -6,6 +6,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Group, GroupDocument } from 'src/entities/group.entity';
+import { House, HouseDocument } from 'src/entities/house.entity';
 import {
   UserGroupActions,
   UserGroupActionsDocument,
@@ -39,6 +40,42 @@ export class GroupService {
   }
 
   public async createGroup(group: Group, loggedInUser: string): Promise<Group> {
+    const owenedGroups = await this.groupModel.aggregate([
+      {
+        $match: {
+          deleted: {
+            $ne: true,
+          },
+        },
+      },
+      {
+        $match: {
+          owner: loggedInUser,
+        },
+      },
+    ]);
+    if(owenedGroups.length >= 40) {
+      throw new HttpException('You cannot own more than 40 groups', 400);
+    }
+    if(group.houseId) {
+      const groupsInHouses = await this.groupModel.aggregate([
+        {
+          $match: {
+            deleted: {
+              $ne: true,
+            },
+          },
+        },
+        {
+          $match: {
+            houseId: group.houseId,
+          },
+        },
+      ]);
+      if(groupsInHouses.length >= 20) {
+        throw new HttpException('You cannot create more than 20 groups in a house', 400);
+      }
+    }
     group['_id'] = null;
     group.owner = loggedInUser;
     group.active = true;
@@ -63,6 +100,25 @@ export class GroupService {
     }
     if (extGroup.owner !== loggedInUser) {
       throw new HttpException("You don't own this Group", 400);
+    }
+    if(group.houseId) {
+      const groupsInHouses = await this.groupModel.aggregate([
+        {
+          $match: {
+            deleted: {
+              $ne: true,
+            },
+          },
+        },
+        {
+          $match: {
+            houseId: group.houseId,
+          },
+        },
+      ]);
+      if(groupsInHouses.length >= 20) {
+        throw new HttpException('You cannot have more than 20 groups in a house', 400);
+      }
     }
     await this.groupModel.updateOne(
       { _id: groupId },
@@ -136,7 +192,7 @@ export class GroupService {
     await this.groupModel.updateOne(
       { _id: groupId },
       {
-        languages: languages.split(","),
+        languages: languages.split(','),
         updatedBy: loggedInUser,
         updatedDate: new Date(),
       },
@@ -229,7 +285,11 @@ export class GroupService {
         callInProgress: callInProgress,
       },
     );
-    await this.messageService.notifyConference(groupId, callInProgress);
+    await this.messageService.notifyConference(
+      groupId,
+      user._id.toString(),
+      callInProgress,
+    );
   }
 
   public async toggleReport(

@@ -1,10 +1,16 @@
-import { UploadedFileMetadata } from '@nestjs/azure-storage';
+import {
+  AzureStorageFileInterceptor,
+  UploadedFileMetadata,
+} from '@nestjs/azure-storage';
 import {
   Body,
   Controller,
   Delete,
   Get,
+  HttpStatus,
   Param,
+  ParseFilePipe,
+  ParseFilePipeBuilder,
   Post,
   Put,
   Query,
@@ -49,7 +55,11 @@ export class GroupController {
     @Req() request: Request,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.groupService.updateGroupLanguages(groupId, languages, loggedInUser.email);
+    return this.groupService.updateGroupLanguages(
+      groupId,
+      languages,
+      loggedInUser.email,
+    );
   }
 
   @Auth('USER')
@@ -60,7 +70,11 @@ export class GroupController {
     @Body() group: Group,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.groupService.updateGroupSchedule(groupId, group, loggedInUser.email);
+    return this.groupService.updateGroupSchedule(
+      groupId,
+      group,
+      loggedInUser.email,
+    );
   }
 
   @Auth('USER')
@@ -69,10 +83,22 @@ export class GroupController {
   uploadBanner(
     @Req() request: Request,
     @Param('groupId') groupId: string,
-    @UploadedFile() file: UploadedFileMetadata,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({
+          fileType: /[\.?\/?]+(gif|jpe?g|tiff?|png|webp|bmp)$/i,
+        })
+        .addMaxSizeValidator({
+          maxSize: 2000000,
+        })
+        .build({
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        }),
+    )
+    file: UploadedFileMetadata,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.groupService.uploadBanner(file, groupId, loggedInUser);
+    return this.groupService.uploadBanner(file, groupId, loggedInUser.email);
   }
 
   @Auth('USER')
@@ -109,7 +135,11 @@ export class GroupController {
     @Req() request: Request,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.groupService.callInProgress(groupId, loggedInUser.email, callInProgress);
+    return this.groupService.callInProgress(
+      groupId,
+      loggedInUser.email,
+      callInProgress,
+    );
   }
 
   @Auth('USER', 'ADMIN')
@@ -121,7 +151,12 @@ export class GroupController {
     @Req() request: Request,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.groupService.toggleReport(groupId, report, category, loggedInUser.email);
+    return this.groupService.toggleReport(
+      groupId,
+      report,
+      category,
+      loggedInUser.email,
+    );
   }
 
   @Auth('USER')

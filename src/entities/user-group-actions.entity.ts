@@ -2,12 +2,12 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { Audit } from './audit';
 
-@Schema()
+@Schema({ autoIndex: true })
 export class UserGroupActions extends Audit {
-  @Prop()
+  @Prop({ index: true })
   userId: string;
 
-  @Prop()
+  @Prop({ index: true })
   groupId: string;
 
   @Prop()

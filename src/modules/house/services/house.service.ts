@@ -37,6 +37,23 @@ export class HouseService {
     if (owner == null) {
       throw new HttpException('Invalid Owner', 400);
     }
+    const owenedHouses = await this.houseModel.aggregate([
+      {
+        $match: {
+          deleted: {
+            $ne: true,
+          },
+        },
+      },
+      {
+        $match: {
+          owner: loggedInUser,
+        },
+      },
+    ]);
+    if(owenedHouses.length >= 10) {
+      throw new HttpException('You cannot own more than 10 houses', 400);
+    }
     house['_id'] = null;
     house.active = true;
     house.createdBy = loggedInUser;

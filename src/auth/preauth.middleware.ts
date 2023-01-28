@@ -14,13 +14,13 @@ export class PreauthMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: Function) {
     const token = req.headers.authorization;
     if (token != null && token != '') {
-      console.log(token);
+      console.debug(token);
       defaultApp
         .auth()
         .verifyIdToken(token.replace('Bearer ', ''))
         .then(async (decodedToken) => {
           const isPasswordFlow = decodedToken.firebase.sign_in_provider === 'password';
-          console.log(JSON.stringify(decodedToken));
+          console.debug(JSON.stringify(decodedToken));
           const user = {
             email: decodedToken.email ? decodedToken.email : '',
             phone: decodedToken.phone_number ? decodedToken.phone_number : '',
@@ -30,11 +30,12 @@ export class PreauthMiddleware implements NestMiddleware {
             $or: [{ email: user.email }, { phone: user.phone }],
           });
           if (userExist != null) {
-            console.log(userExist);
+            console.debug(userExist);
             user.email = userExist.email;
             user.phone = userExist.phone;
             user.roles = userExist.roles;
           } else {
+            console.log('baseUrl', req.baseUrl);
             if (isPasswordFlow || !req.baseUrl.includes('register')) {
               this.accessDenied(req.url, res);
               return;
@@ -42,7 +43,7 @@ export class PreauthMiddleware implements NestMiddleware {
               user.roles = ['USER'];
             }
           }
-          console.log(user);
+          console.debug(user);
           req['user'] = user;
           next();
         })

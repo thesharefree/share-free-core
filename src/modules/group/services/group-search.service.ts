@@ -168,6 +168,9 @@ export class GroupSearchService {
           },
         },
       },
+      {
+        $unset: ['userActions', 'userXrefs'],
+      },
     ]);
     for (const group of uniqueGroups) {
       const topics = await this.groupTopicService.getGroupTopics(group._id);

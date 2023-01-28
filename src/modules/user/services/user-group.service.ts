@@ -121,6 +121,9 @@ export class UserGroupService {
           },
         },
       },
+      {
+        $unset: ['userActions', 'userXrefs'],
+      },
     ]);
     for (const group of groups) {
       const xrefResps = await this.groupTopicXrefModel.find({
@@ -218,6 +221,21 @@ export class UserGroupService {
             },
           },
         },
+      },
+      {
+        $addFields: {
+          myActions: {
+            $filter: {
+              input: '$userActions',
+              cond: {
+                $eq: ['$$this.userId', user._id.toString()],
+              },
+            },
+          },
+        },
+      },
+      {
+        $unset: ['actionUserIds', 'userActions', 'userXrefs'],
       },
     ]);
     for (const group of groups) {

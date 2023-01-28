@@ -14,13 +14,13 @@ export class PreauthMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: Function) {
     const token = req.headers.authorization;
     if (token != null && token != '') {
-      console.log(token);
+      console.debug(token);
       defaultApp
         .auth()
         .verifyIdToken(token.replace('Bearer ', ''))
         .then(async (decodedToken) => {
           const isPasswordFlow = decodedToken.firebase.sign_in_provider === 'password';
-          console.log(JSON.stringify(decodedToken));
+          console.debug(JSON.stringify(decodedToken));
           const user = {
             email: decodedToken.email ? decodedToken.email : '',
             phone: decodedToken.phone_number ? decodedToken.phone_number : '',

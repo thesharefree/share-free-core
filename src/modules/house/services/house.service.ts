@@ -29,6 +29,9 @@ export class HouseService {
     if (house == null) {
       throw new HttpException('Invalid House', 400);
     }
+    if(house.deleted) {
+      throw new HttpException('House has been deleted', 400);
+    }
     return house;
   }
 

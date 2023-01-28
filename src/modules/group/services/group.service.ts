@@ -17,6 +17,7 @@ import {
 } from 'src/entities/user-group-xref.entity';
 import { User, UserDocument } from 'src/entities/user.entity';
 import { MessageService } from 'src/modules/message/services/message.service';
+import { GroupTopicController } from '../controllers/group-topic.controller';
 
 @Injectable()
 export class GroupService {
@@ -35,6 +36,9 @@ export class GroupService {
     const group = await this.groupModel.findById(groupId);
     if (group == null) {
       throw new HttpException('Invalid Group', 400);
+    }
+    if(group.deleted) {
+      throw new HttpException('Group has been deleted', 400);
     }
     return group;
   }

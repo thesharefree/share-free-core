@@ -35,8 +35,8 @@ export class PreauthMiddleware implements NestMiddleware {
             user.phone = userExist.phone;
             user.roles = userExist.roles;
           } else {
-            console.log('baseUrl', req.baseUrl);
-            if (isPasswordFlow || !req.baseUrl.includes('register')) {
+            console.log('baseUrl', req.url);
+            if (isPasswordFlow || !req.url.includes('register')) {
               this.accessDenied(req.url, res);
               return;
             } else {

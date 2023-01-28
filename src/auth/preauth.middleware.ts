@@ -30,11 +30,12 @@ export class PreauthMiddleware implements NestMiddleware {
             $or: [{ email: user.email }, { phone: user.phone }],
           });
           if (userExist != null) {
-            console.log(userExist);
+            console.debug(userExist);
             user.email = userExist.email;
             user.phone = userExist.phone;
             user.roles = userExist.roles;
           } else {
+            console.log('baseUrl', req.baseUrl);
             if (isPasswordFlow || !req.baseUrl.includes('register')) {
               this.accessDenied(req.url, res);
               return;
@@ -42,7 +43,7 @@ export class PreauthMiddleware implements NestMiddleware {
               user.roles = ['USER'];
             }
           }
-          console.log(user);
+          console.debug(user);
           req['user'] = user;
           next();
         })

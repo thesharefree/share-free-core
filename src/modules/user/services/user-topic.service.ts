@@ -23,9 +23,11 @@ export class UserTopicService {
   ): Promise<void> {
     const user = await this.userModel.findOne({ email: loggedInUser });
     await this.userTopicXrefModel.deleteMany({ userId: user._id });
+    let isTopics = false;
     topicIds.split(',').forEach(async (topicId) => {
       const topic = await this.topicModel.findById(topicId);
       if (topic != null) {
+        isTopics = true;
         const xrefResp = await this.userTopicXrefModel.findOne({
           userId: user._id,
           topicId: topicId,
@@ -37,7 +39,11 @@ export class UserTopicService {
         }
       }
     });
-    await this.userModel.findByIdAndUpdate(user._id, { onboarded: true });
+    if (isTopics) {
+      await this.userModel.findByIdAndUpdate(user._id, { onboarded: true });
+    } else {
+      await this.userModel.findByIdAndUpdate(user._id, { onboarded: false });
+    }
   }
 
   private newUserTopicXref(

@@ -121,6 +121,10 @@ export class GroupUserService {
     const xref = this.newUserGroupXref(userId, groupId, loggedInUser);
     const createdUserGroupXref = new this.userGroupXrefModel(xref);
     await createdUserGroupXref.save();
+    await this.userGroupRequestXrefModel.deleteOne({
+      groupId: group._id,
+      userId: user._id,
+    });
     await this.messageService.notifyGeneral(
       group._id.toString(),
       group.name,

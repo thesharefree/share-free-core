@@ -16,7 +16,7 @@ export class UserService {
   ) {}
 
   public async getUser(loggedInUser: User): Promise<User> {
-    const user = await this.userModel.findOne({ email: loggedInUser });
+    const user = await this.userModel.findOne({ email: loggedInUser.email });
     if (user == null) {
       throw new HttpException('Invalid User', 400);
     }

@@ -20,7 +20,7 @@ export class UserService {
     if (user == null) {
       throw new HttpException('Invalid User', 400);
     }
-    if(!user.firebaseUserId) {
+    if(user.firebaseUserId !== loggedInUser.firebaseUserId) {
       await this.userModel.findByIdAndUpdate(user._id, {
         firebaseUserId: loggedInUser.firebaseUserId,
       });

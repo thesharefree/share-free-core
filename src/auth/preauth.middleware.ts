@@ -19,16 +19,17 @@ export class PreauthMiddleware implements NestMiddleware {
         .auth()
         .verifyIdToken(token.replace('Bearer ', ''))
         .then(async (decodedToken) => {
+          const firebaseUser = await defaultApp.auth().getUser(decodedToken.uid);
           const isPasswordFlow = decodedToken.firebase.sign_in_provider === 'password';
-          console.debug(JSON.stringify(decodedToken));
+          console.info('Firebase User', JSON.stringify(firebaseUser));
           const user = {
-            email: decodedToken.email ? decodedToken.email : '',
-            phone: decodedToken.phone_number ? decodedToken.phone_number : '',
-            firebaseUserId: decodedToken.uid,
+            email: firebaseUser.email ?? firebaseUser.providerData[0].email,
+            phone: firebaseUser.phoneNumber ?? firebaseUser.providerData[0].phoneNumber,
+            firebaseUserId: firebaseUser.uid,
             roles: [],
           };
           const userExist = await this.userModel.findOne({
-            $or: [{ email: user.email }, { phone: user.phone }, { firebaseUserId: decodedToken.uid}],
+            $or: [{ email: user.email }, { phone: user.phone }, { firebaseUserId: firebaseUser.uid}],
           });
           if (userExist != null) {
             console.debug(userExist);

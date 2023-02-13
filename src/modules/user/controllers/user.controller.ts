@@ -27,17 +27,16 @@ export class UserController {
   @Auth('USER', 'ADMIN')
   @Get('/me')
   getUser(@Req() request: Request): Promise<User> {
-    return this.userService.getUser(request['user'].email);
+    const loggedInUser = request['user'];
+    return this.userService.getUser(loggedInUser);
   }
 
   @Auth('USER')
   @Post('/register')
   createUser(@Req() request: Request, @Body() user: User): Promise<void> {
     const loggedInUser = request['user'];
-    if (loggedInUser.email != user.email && loggedInUser.phone != user.phone) {
-      throw new HttpException('Operation not allowed', 400);
-    }
     user.roles = [Role.USER];
+    user.firebaseUserId = loggedInUser.firebaseUserId;
     return this.userService.register(user, loggedInUser.email);
   }
 

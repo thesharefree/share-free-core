@@ -116,7 +116,7 @@ export class UserController {
     return this.userService.toggleUserById(userId, loggedInUser.email);
   }
 
-  @Auth('ADMIN')
+  @Auth('ADMIN', 'USER')
   @Put('/toggle')
   toggleSelf(
     @Req() request: Request,

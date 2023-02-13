@@ -20,7 +20,7 @@ export class AuthGuard implements CanActivate {
   }
 
   private matchRoles(roles: string[], userRoles: string[]): boolean {
-    for (let role of userRoles) {
+    for (const role of userRoles) {
       if (roles.includes(role)) {
         return true;
       }

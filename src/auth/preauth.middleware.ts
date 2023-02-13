@@ -24,10 +24,11 @@ export class PreauthMiddleware implements NestMiddleware {
           const user = {
             email: decodedToken.email ? decodedToken.email : '',
             phone: decodedToken.phone_number ? decodedToken.phone_number : '',
+            firebaseUserId: decodedToken.uid,
             roles: [],
           };
           const userExist = await this.userModel.findOne({
-            $or: [{ email: user.email }, { phone: user.phone }],
+            $or: [{ email: user.email }, { phone: user.phone }, { firebaseUserId: decodedToken.uid}],
           });
           if (userExist != null) {
             console.debug(userExist);

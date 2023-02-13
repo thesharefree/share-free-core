@@ -15,10 +15,15 @@ export class UserService {
     private readonly azureStorage: AzureStorageService,
   ) {}
 
-  public async getUser(loggedInUser: string): Promise<User> {
+  public async getUser(loggedInUser: User): Promise<User> {
     const user = await this.userModel.findOne({ email: loggedInUser });
     if (user == null) {
       throw new HttpException('Invalid User', 400);
+    }
+    if(!user.firebaseUserId) {
+      await this.userModel.findByIdAndUpdate(user._id, {
+        firebaseUserId: loggedInUser.firebaseUserId,
+      });
     }
     return user;
   }
@@ -41,6 +46,7 @@ export class UserService {
         })
         .then(async function (userRecord) {
           console.log('User created in Firebase:', userRecord.uid);
+          user.firebaseUserId = userRecord.uid;
           await service.register(user, loggedInUser);
         })
         .catch(function (error) {
@@ -52,7 +58,7 @@ export class UserService {
   public async register(user: User, loggedInUser: string): Promise<void> {
     const userResp = await this.userModel.findOne({ email: user.email });
     if (userResp != null) {
-      throw new HttpException('User already exists', 400);
+      throw new HttpException('User with this email already exists', 400);
     } else {
       user['_id'] = null;
       user.active = true;

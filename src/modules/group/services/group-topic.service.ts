@@ -27,7 +27,8 @@ export class GroupTopicService {
       throw new HttpException('Invalid group', 400);
     } else {
       await this.groupTopicXrefModel.deleteMany({ groupId: group._id });
-      topicIds.split(',').forEach(async (topicId) => {
+      // topicIds.split(',').forEach(async (topicId) => {
+      for (const topicId of topicIds.split(',')) {
         const topic = await this.topicModel.findById(topicId);
         if (topic != null) {
           const xrefResp = await this.groupTopicXrefModel.findOne({
@@ -44,7 +45,7 @@ export class GroupTopicService {
             await createdGroupTopicXref.save();
           }
         }
-      });
+      }
     }
   }
 

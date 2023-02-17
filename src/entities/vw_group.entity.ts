@@ -1,18 +1,16 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { House } from './house.entity';
 import { Location } from './location';
+import { Topic } from './topic.entity';
+import { UserGroupActions } from './user-group-actions.entity';
 
-@Schema()
-export class Group extends Location {
-  @Prop({
-    required: [true, 'Group Name is required'],
-    minlength: [6, 'Must be at least 6 characters'],
-  })
+@Schema({ collection: 'vw_groups', autoCreate: false })
+export class GroupView extends Location {
+  @Prop()
   name: string;
 
-  @Prop({
-    required: true,
-  })
+  @Prop()
   owner: string;
 
   @Prop()
@@ -44,7 +42,17 @@ export class Group extends Location {
 
   @Prop()
   callInProgress: boolean;
+
+  topics: Topic[];
+
+  house: House;
+
+  myActions: UserGroupActions;
+
+  stars: number;
+
+  reports: number;
 }
 
-export type GroupDocument = Group & Document;
-export const GroupSchema = SchemaFactory.createForClass(Group);
+export type GroupViewDocument = GroupView & Document;
+export const GroupViewSchema = SchemaFactory.createForClass(GroupView);

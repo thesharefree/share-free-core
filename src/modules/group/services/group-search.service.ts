@@ -5,7 +5,6 @@ import { Group, GroupDocument } from 'src/entities/group.entity';
 import { House, HouseDocument } from 'src/entities/house.entity';
 import { Topic, TopicDocument } from 'src/entities/topic.entity';
 import { GroupView, GroupViewDocument } from 'src/entities/vw_group.entity';
-import { GroupTopicService } from './group-topic.service';
 
 @Injectable()
 export class GroupSearchService {
@@ -15,7 +14,6 @@ export class GroupSearchService {
     @InjectModel(GroupView.name)
     private readonly groupViewModel: Model<GroupViewDocument>,
     @InjectModel(House.name) private readonly houseModel: Model<HouseDocument>,
-    private readonly groupTopicService: GroupTopicService,
   ) {}
 
   public async searchGroups(keywordsStr: string): Promise<Group[]> {
@@ -33,6 +31,9 @@ export class GroupSearchService {
       },
     ];
     const searchedGroups = await this.groupModel.aggregate(groupFind);
+    const groupIds = searchedGroups.map((group) => {
+      return group._id.toString();
+    });
     const topicFind = [
       {
         $search: {
@@ -50,9 +51,6 @@ export class GroupSearchService {
     const topicIds = searchedTopics.map((topic) => {
       return topic._id.toString();
     });
-    const searchedTopicGroups = await this.groupTopicService.getTopicsGroups(
-      topicIds,
-    );
     const houseFind = [
       {
         $search: {
@@ -70,30 +68,30 @@ export class GroupSearchService {
     const houseIds = searchedHouses.map((house) => {
       return house._id.toString();
     });
-    const searchedHouseGroups = await this.groupModel
-      .find()
-      .where('houseId')
-      .in(houseIds);
-    const groups = searchedGroups
-      .concat(searchedTopicGroups)
-      .concat(searchedHouseGroups)
-      .filter((group) => !group.deleted);
-    const groupIds = groups.map((value) => value._id.toString());
-    const uniqueGroupIds = groups
-      .filter((group, pos) => {
-        return groupIds.indexOf(group._id.toString()) == pos;
-      })
-      .map((group) => group._id.toString());
     const uniqueGroups = await this.groupViewModel.aggregate([
       {
         $match: {
-          groupId: {
-            $in: uniqueGroupIds,
-          },
+          $or: [
+            {
+              groupId: {
+                $in: groupIds,
+              },
+            },
+            {
+              houseId: {
+                $in: houseIds,
+              },
+            },
+            {
+              topicIds: {
+                $in: topicIds,
+              },
+            },
+          ],
         },
       },
       {
-        $unset: ['userActions', 'userXrefs'],
+        $unset: ['userActions', 'topicIds'],
       },
     ]);
     return uniqueGroups;

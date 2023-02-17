@@ -107,6 +107,13 @@ export class CreateGroupView {
           },
         },
         {
+            $addFields: {
+              houseId: {
+                $toString: '$houseId',
+              },
+            },
+          },
+        {
           $lookup: {
             from: 'grouptopicxrefs',
             localField: 'groupId',
@@ -135,14 +142,9 @@ export class CreateGroupView {
           },
         },
         {
-          $unset: ['userXrefs', 'houses', 'topicXrefs', 'topicIds'],
+          $unset: ['userXrefs', 'houses', 'topicXrefs'],
         },
       ],
     });
-    //   await connection.db.createIndex('vw_groups', {
-    //     "name": "text",
-    //     "topics": "text",
-    //     "house": "text"
-    //   });
   }
 }

@@ -46,7 +46,7 @@ export class UserGroupService {
         },
       },
       {
-        $unset: ['userActions', 'userXrefs'],
+        $unset: ['userActions', 'topicIds'],
       },
     ]);
   }
@@ -82,7 +82,7 @@ export class UserGroupService {
         },
       },
       {
-        $unset: ['userActions', 'actionUserIds'],
+        $unset: ['userActions', 'actionUserIds', 'topicIds'],
       },
     ]);
   }

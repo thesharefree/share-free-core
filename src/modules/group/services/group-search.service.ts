@@ -49,7 +49,7 @@ export class GroupSearchService {
     ];
     const searchedTopics = await this.topicModel.aggregate(topicFind);
     const topicIds = searchedTopics.map((topic) => {
-      return topic._id.toString();
+      return topic._id;
     });
     const houseFind = [
       {

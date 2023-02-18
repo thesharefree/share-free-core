@@ -1,5 +1,4 @@
 import {
-  AzureStorageFileInterceptor,
   UploadedFileMetadata,
 } from '@nestjs/azure-storage';
 import {
@@ -9,7 +8,6 @@ import {
   Get,
   HttpStatus,
   Param,
-  ParseFilePipe,
   ParseFilePipeBuilder,
   Post,
   Put,
@@ -97,7 +95,6 @@ export class GroupController {
     )
     file: UploadedFileMetadata,
   ): Promise<void> {
-    console.log('file', file);
     const loggedInUser = request['user'];
     return this.groupService.uploadBanner(file, groupId, loggedInUser.email);
   }

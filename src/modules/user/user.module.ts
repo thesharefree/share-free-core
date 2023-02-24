@@ -2,6 +2,7 @@ import { AzureStorageModule } from '@nestjs/azure-storage';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Group, GroupSchema } from 'src/entities/group.entity';
+import { GroupView, GroupViewSchema } from 'src/entities/vw_group.entity';
 import { House, HouseSchema } from 'src/entities/house.entity';
 import { Query, QuerySchema } from 'src/entities/query.entity';
 import {
@@ -50,6 +51,7 @@ import {
     MongooseModule.forFeature([{ name: Query.name, schema: QuerySchema }]),
     MongooseModule.forFeature([{ name: House.name, schema: HouseSchema }]),
     MongooseModule.forFeature([{ name: Group.name, schema: GroupSchema }]),
+    MongooseModule.forFeature([{ name: GroupView.name, schema: GroupViewSchema }]),
     MongooseModule.forFeature([
       { name: TopicQueryXref.name, schema: TopicQueryXrefSchema },
     ]),

@@ -1,5 +1,4 @@
 import {
-  AzureStorageFileInterceptor,
   UploadedFileMetadata,
 } from '@nestjs/azure-storage';
 import {
@@ -9,7 +8,6 @@ import {
   Get,
   HttpStatus,
   Param,
-  ParseFilePipe,
   ParseFilePipeBuilder,
   Post,
   Put,

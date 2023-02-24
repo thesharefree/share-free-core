@@ -122,7 +122,7 @@ export class HouseService {
     await this.houseModel.updateOne(
       { _id: extHouse._id },
       {
-        banner: storageUrl,
+        banner: storageUrl.split("?")[0],
         updatedBy: loggedInUser.email,
         updatedDate: new Date(),
       },

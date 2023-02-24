@@ -223,7 +223,7 @@ export class GroupService {
     await this.groupModel.updateOne(
       { _id: group._id },
       {
-        banner: storageUrl,
+        banner: storageUrl.split("?")[0],
         updatedBy: loggedInUser,
         updatedDate: new Date(),
       },

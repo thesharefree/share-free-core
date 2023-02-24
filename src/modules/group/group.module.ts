@@ -1,6 +1,6 @@
 import { AzureStorageModule } from '@nestjs/azure-storage';
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
+import { InjectConnection, MongooseModule } from '@nestjs/mongoose';
 import {
   GroupAnswer,
   GroupAnswerSchema,
@@ -41,6 +41,9 @@ import { GroupTopicService } from './services/group-topic.service';
 import { GroupUserService } from './services/group-user.service';
 import { GroupService } from './services/group.service';
 import { House, HouseSchema } from 'src/entities/house.entity';
+import { GroupView, GroupViewSchema } from 'src/entities/vw_group.entity';
+import { Connection } from 'mongoose';
+import { CreateGroupView } from 'src/entities/create_vw_groups';
 
 @Module({
   imports: [
@@ -54,6 +57,9 @@ import { House, HouseSchema } from 'src/entities/house.entity';
     MongooseModule.forFeature([{ name: House.name, schema: HouseSchema }]),
     MongooseModule.forFeature([{ name: Query.name, schema: QuerySchema }]),
     MongooseModule.forFeature([{ name: Group.name, schema: GroupSchema }]),
+    MongooseModule.forFeature([
+      { name: GroupView.name, schema: GroupViewSchema },
+    ]),
     MongooseModule.forFeature([
       { name: GroupAnswer.name, schema: GroupAnswerSchema },
     ]),
@@ -89,4 +95,10 @@ import { House, HouseSchema } from 'src/entities/house.entity';
     GroupUserService,
   ],
 })
-export class GroupModule {}
+export class GroupModule {
+  @InjectConnection() private readonly connection: Connection;
+
+  async onModuleInit(): Promise<void> {
+    await CreateGroupView.createView(this.connection);
+  }
+}

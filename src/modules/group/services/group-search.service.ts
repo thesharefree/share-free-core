@@ -1,32 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import {
-  GroupTopicXref,
-  GroupTopicXrefDocument,
-} from 'src/entities/group-topic-xref.entity';
 import { Group, GroupDocument } from 'src/entities/group.entity';
 import { House, HouseDocument } from 'src/entities/house.entity';
 import { Topic, TopicDocument } from 'src/entities/topic.entity';
-import {
-  UserGroupActions,
-  UserGroupActionsDocument,
-} from 'src/entities/user-group-actions.entity';
-import {
-  UserGroupXref,
-  UserGroupXrefDocument,
-} from 'src/entities/user-group-xref.entity';
-import { GroupTopicService } from './group-topic.service';
+import { GroupView, GroupViewDocument } from 'src/entities/vw_group.entity';
 
 @Injectable()
 export class GroupSearchService {
   constructor(
     @InjectModel(Topic.name) private readonly topicModel: Model<TopicDocument>,
     @InjectModel(Group.name) private readonly groupModel: Model<GroupDocument>,
+    @InjectModel(GroupView.name)
+    private readonly groupViewModel: Model<GroupViewDocument>,
     @InjectModel(House.name) private readonly houseModel: Model<HouseDocument>,
-    @InjectModel(UserGroupActions.name)
-    private readonly userGroupActionsModel: Model<UserGroupActionsDocument>,
-    private readonly groupTopicService: GroupTopicService,
   ) {}
 
   public async searchGroups(keywordsStr: string): Promise<Group[]> {
@@ -44,6 +31,9 @@ export class GroupSearchService {
       },
     ];
     const searchedGroups = await this.groupModel.aggregate(groupFind);
+    const groupIds = searchedGroups.map((group) => {
+      return group._id.toString();
+    });
     const topicFind = [
       {
         $search: {
@@ -59,11 +49,8 @@ export class GroupSearchService {
     ];
     const searchedTopics = await this.topicModel.aggregate(topicFind);
     const topicIds = searchedTopics.map((topic) => {
-      return topic._id.toString();
+      return topic._id;
     });
-    const searchedTopicGroups = await this.groupTopicService.getTopicsGroups(
-      topicIds,
-    );
     const houseFind = [
       {
         $search: {
@@ -81,102 +68,32 @@ export class GroupSearchService {
     const houseIds = searchedHouses.map((house) => {
       return house._id.toString();
     });
-    const searchedHouseGroups = await this.groupModel
-      .find()
-      .where('houseId')
-      .in(houseIds);
-    const groups = searchedGroups
-      .concat(searchedTopicGroups)
-      .concat(searchedHouseGroups)
-      .filter((group) => !group.deleted);
-    const groupIds = groups.map((value) => value._id.toString());
-    const uniqueGroupIds = groups
-      .filter((group, pos) => {
-        return groupIds.indexOf(group._id.toString()) == pos;
-      })
-      .map((group) => group._id.toString());
-    const uniqueGroups = await this.groupModel.aggregate([
+    const uniqueGroups = await this.groupViewModel.aggregate([
       {
         $match: {
-          deleted: {
-            $ne: true,
-          },
-        },
-      },
-      {
-        $addFields: {
-          groupId: {
-            $toString: '$_id',
-          },
-        },
-      },
-      {
-        $match: {
-          groupId: {
-            $in: uniqueGroupIds,
-          },
-        },
-      },
-      {
-        $lookup: {
-          from: 'usergroupxrefs',
-          localField: 'groupId',
-          foreignField: 'groupId',
-          as: 'userXrefs',
-        },
-      },
-      {
-        $addFields: {
-          members: {
-            $size: '$userXrefs',
-          },
-        },
-      },
-      {
-        $lookup: {
-          from: 'usergroupactions',
-          localField: 'groupId',
-          foreignField: 'groupId',
-          as: 'userActions',
-        },
-      },
-      {
-        $addFields: {
-          stars: {
-            $size: {
-              $filter: {
-                input: '$userActions',
-                cond: {
-                  $eq: ['$$this.starred', true],
-                },
+          $or: [
+            {
+              groupId: {
+                $in: groupIds,
               },
             },
-          },
-        },
-      },
-      {
-        $addFields: {
-          reports: {
-            $size: {
-              $filter: {
-                input: '$userActions',
-                cond: {
-                  $eq: ['$$this.reported', true],
-                },
+            {
+              houseId: {
+                $in: houseIds,
               },
             },
-          },
+            {
+              topicIds: {
+                $in: topicIds,
+              },
+            },
+          ],
         },
       },
       {
-        $unset: ['userActions', 'userXrefs'],
+        $unset: ['userActions', 'topicIds'],
       },
     ]);
-    for (const group of uniqueGroups) {
-      const topics = await this.groupTopicService.getGroupTopics(group._id);
-      const topicNames = topics.map((topic) => topic.name);
-      group.topics = topicNames;
-    }
     return uniqueGroups;
   }
 }

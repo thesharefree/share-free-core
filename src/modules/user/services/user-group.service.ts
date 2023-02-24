@@ -16,63 +16,23 @@ import {
   GroupTopicXref,
   GroupTopicXrefDocument,
 } from 'src/entities/group-topic-xref.entity';
+import { GroupView, GroupViewDocument } from 'src/entities/vw_group.entity';
 
 @Injectable()
 export class UserGroupService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
-    @InjectModel(Group.name) private readonly groupModel: Model<GroupDocument>,
-    @InjectModel(Topic.name) private readonly topicModel: Model<TopicDocument>,
     @InjectModel(GroupTopicXref.name)
     private readonly groupTopicXrefModel: Model<GroupTopicXrefDocument>,
-    @InjectModel(UserGroupXref.name)
-    private readonly userGroupXrefModel: Model<UserGroupXrefDocument>,
+    @InjectModel(GroupView.name)
+    private readonly groupViewModel: Model<GroupViewDocument>,
     @InjectModel(UserGroupActions.name)
     private readonly userGroupActionsModel: Model<UserGroupActionsDocument>,
   ) {}
 
   public async getUserGroups(loggedInUser: string): Promise<Group[]> {
     const user = await this.userModel.findOne({ email: loggedInUser });
-    const groups = await this.groupModel.aggregate([
-      {
-        $match: {
-          deleted: {
-            $ne: true,
-          },
-        },
-      },
-      {
-        $addFields: {
-          groupId: {
-            $toString: '$_id',
-          },
-        },
-      },
-      {
-        $lookup: {
-          from: 'usergroupxrefs',
-          localField: 'groupId',
-          foreignField: 'groupId',
-          as: 'userXrefs',
-        },
-      },
-      {
-        $addFields: {
-          members: {
-            $size: '$userXrefs',
-          },
-        },
-      },
-      {
-        $addFields: {
-          userIds: {
-            $map: {
-              input: '$userXrefs',
-              in: '$$this.userId',
-            },
-          },
-        },
-      },
+    return await this.groupViewModel.aggregate([
       {
         $match: {
           $or: [
@@ -86,99 +46,14 @@ export class UserGroupService {
         },
       },
       {
-        $lookup: {
-          from: 'usergroupactions',
-          localField: 'groupId',
-          foreignField: 'groupId',
-          as: 'userActions',
-        },
-      },
-      {
-        $addFields: {
-          stars: {
-            $size: {
-              $filter: {
-                input: '$userActions',
-                cond: {
-                  $eq: ['$$this.starred', true],
-                },
-              },
-            },
-          },
-        },
-      },
-      {
-        $addFields: {
-          reports: {
-            $size: {
-              $filter: {
-                input: '$userActions',
-                cond: {
-                  $eq: ['$$this.reported', true],
-                },
-              },
-            },
-          },
-        },
-      },
-      {
-        $unset: ['userActions', 'userXrefs'],
+        $unset: ['userActions', 'topicIds'],
       },
     ]);
-    for (const group of groups) {
-      const xrefResps = await this.groupTopicXrefModel.find({
-        groupId: group._id,
-      });
-      const topicIds = xrefResps.map((xref) => {
-        return xref.topicId;
-      });
-      const topics = await this.topicModel.find().where('_id').in(topicIds);
-      const topicNames = topics.map((topic) => topic.name);
-      group.topics = topicNames;
-    }
-    return groups;
   }
 
   public async getUserActionedGroups(loggedInUser: string): Promise<Group[]> {
     const user = await this.userModel.findOne({ email: loggedInUser });
-    const groups = await this.groupModel.aggregate([
-      {
-        $match: {
-          deleted: {
-            $ne: true,
-          },
-        },
-      },
-      {
-        $addFields: {
-          groupId: {
-            $toString: '$_id',
-          },
-        },
-      },
-      {
-        $lookup: {
-          from: 'usergroupxrefs',
-          localField: 'groupId',
-          foreignField: 'groupId',
-          as: 'userXrefs',
-        },
-      },
-      {
-        $lookup: {
-          from: 'usergroupactions',
-          localField: 'groupId',
-          foreignField: 'groupId',
-          as: 'userActions',
-        },
-      },
-      {
-        $addFields: {
-          members: {
-            $size: '$userXrefs',
-          },
-        },
-      },
+    return await this.groupViewModel.aggregate([
       {
         $addFields: {
           actionUserIds: {
@@ -196,34 +71,6 @@ export class UserGroupService {
       },
       {
         $addFields: {
-          stars: {
-            $size: {
-              $filter: {
-                input: '$userActions',
-                cond: {
-                  $eq: ['$$this.starred', true],
-                },
-              },
-            },
-          },
-        },
-      },
-      {
-        $addFields: {
-          reports: {
-            $size: {
-              $filter: {
-                input: '$userActions',
-                cond: {
-                  $eq: ['$$this.reported', true],
-                },
-              },
-            },
-          },
-        },
-      },
-      {
-        $addFields: {
           myActions: {
             $filter: {
               input: '$userActions',
@@ -235,20 +82,8 @@ export class UserGroupService {
         },
       },
       {
-        $unset: ['actionUserIds', 'userActions', 'userXrefs'],
+        $unset: ['userActions', 'actionUserIds', 'topicIds'],
       },
     ]);
-    for (const group of groups) {
-      const xrefResps = await this.groupTopicXrefModel.find({
-        groupId: group._id,
-      });
-      const topicIds = xrefResps.map((xref) => {
-        return xref.topicId;
-      });
-      const topics = await this.topicModel.find().where('_id').in(topicIds);
-      const topicNames = topics.map((topic) => topic.name);
-      group.topics = topicNames;
-    }
-    return groups;
   }
 }

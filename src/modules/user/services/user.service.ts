@@ -132,7 +132,7 @@ export class UserService {
     await this.userModel.updateOne(
       { _id: userResp._id },
       {
-        photoUrl: storageUrl,
+        photoUrl: storageUrl.split("?")[0],
         updatedBy: loggedInUser,
         updatedDate: new Date(),
       },

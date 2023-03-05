@@ -12,6 +12,10 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { MessageService } from 'src/modules/message/services/message.service';
+import {
+  UserGroupInviteXref,
+  UserGroupInviteXrefDocument,
+} from 'src/entities/user-group-invite-xref.entity';
 
 @Injectable()
 export class GroupUserService {
@@ -22,6 +26,8 @@ export class GroupUserService {
     private readonly userGroupXrefModel: Model<UserGroupXrefDocument>,
     @InjectModel(UserGroupRequestXref.name)
     private readonly userGroupRequestXrefModel: Model<UserGroupRequestXrefDocument>,
+    @InjectModel(UserGroupInviteXref.name)
+    private readonly userGroupInviteXrefModel: Model<UserGroupInviteXrefDocument>,
     private readonly messageService: MessageService,
   ) {}
 
@@ -74,22 +80,27 @@ export class GroupUserService {
     });
   }
 
-  public async pendingUsers(groupId: string): Promise<User[]> {
+  public async pendingUsers(
+    groupId: string,
+    loggedInUser: string,
+  ): Promise<User[]> {
     const group = await this.groupModel.findById(groupId);
-    if (group != null) {
-      const xrefResp = await this.userGroupRequestXrefModel.find({
-        groupId: groupId,
-      });
-      const userIds = xrefResp.map((xref) => {
-        return xref.userId;
-      });
-      return this.userModel.where('_id').in(userIds);
-    } else {
+    if (group == null) {
       throw new HttpException('Invalid group', 400);
     }
+    if (group.owner != loggedInUser) {
+      throw new HttpException('You do not own this Group', 400);
+    }
+    const xrefResp = await this.userGroupRequestXrefModel.find({
+      groupId: groupId,
+    });
+    const userIds = xrefResp.map((xref) => {
+      return xref.userId;
+    });
+    return this.userModel.where('_id').in(userIds);
   }
 
-  public async addToGroup(
+  public async acceptRequest(
     userId: string,
     groupId: string,
     loggedInUser: string,
@@ -110,13 +121,17 @@ export class GroupUserService {
       groupId: groupId,
     });
     if (xrefResp != null) {
+      await this.userGroupRequestXrefModel.deleteOne({
+        groupId: group._id,
+        userId: user._id,
+      });
       throw new HttpException('User is already a member', 400);
     }
     var usersCount = await this.userGroupXrefModel
       .find({ groupId: groupId })
       .count();
     if (usersCount >= 20) {
-      throw new HttpException('Group can have max 20 members', 400);
+      throw new HttpException('A group can have max 20 members', 400);
     }
     const xref = this.newUserGroupXref(userId, groupId, loggedInUser);
     const createdUserGroupXref = new this.userGroupXrefModel(xref);
@@ -129,6 +144,34 @@ export class GroupUserService {
       group._id.toString(),
       group.name,
       `Join request accepted`,
+      [user.registrationToken.toString()],
+    );
+  }
+
+  public async rejectRequest(
+    userId: string,
+    groupId: string,
+    loggedInUser: string,
+  ): Promise<void> {
+    const user = await this.userModel.findById(userId);
+    if (user == null) {
+      throw new HttpException('Invalid user', 400);
+    }
+    const group = await this.groupModel.findById(groupId);
+    if (group == null) {
+      throw new HttpException('Invalid Group', 400);
+    }
+    if (group.owner != loggedInUser) {
+      throw new HttpException('You do not own this Group', 400);
+    }
+    await this.userGroupRequestXrefModel.deleteOne({
+      groupId: group._id,
+      userId: user._id,
+    });
+    await this.messageService.notifyGeneral(
+      group._id.toString(),
+      group.name,
+      `Join request rejected`,
       [user.registrationToken.toString()],
     );
   }
@@ -147,6 +190,166 @@ export class GroupUserService {
     xref.updatedBy = loggedInUser;
     xref.updatedDate = new Date();
     return xref;
+  }
+
+  public async inviteUser(
+    userId: string,
+    groupId: string,
+    loggedInUser: string,
+  ): Promise<void> {
+    const user = await this.userModel.findById(userId);
+    if (user == null) {
+      throw new HttpException('Invalid user', 400);
+    }
+    const group = await this.groupModel.findById(groupId);
+    if (group == null) {
+      throw new HttpException('Invalid Group', 400);
+    }
+    if (group.owner != loggedInUser) {
+      throw new HttpException('You do not own this Group', 400);
+    }
+    const requestXrefResp = await this.userGroupInviteXrefModel.findOne({
+      userId: user._id,
+      groupId: groupId,
+    });
+    if (requestXrefResp != null) {
+      throw new HttpException('User has already been invited', 400);
+    }
+    const memberXrefResp = await this.userGroupXrefModel.findOne({
+      userId: user._id,
+      groupId: groupId,
+    });
+    if (memberXrefResp != null) {
+      throw new HttpException('User is already a member', 400);
+    }
+    const xref = this.newUserGroupInviteXref(user._id, groupId, loggedInUser);
+    const createdUserGroupInviteXref = new this.userGroupInviteXrefModel(xref);
+    await createdUserGroupInviteXref.save();
+    await this.messageService.notifyGeneral(
+      group._id.toString(),
+      group.name,
+      `${user.name} has invited you to join`,
+      [user.registrationToken.toString()],
+    );
+  }
+
+  private newUserGroupInviteXref(
+    userId: string,
+    groupId: string,
+    loggedInUser: string,
+  ): UserGroupInviteXref {
+    const xref = new UserGroupInviteXref();
+    xref.userId = userId;
+    xref.groupId = groupId;
+    xref.active = true;
+    xref.createdBy = loggedInUser;
+    xref.createdDate = new Date();
+    xref.updatedBy = loggedInUser;
+    xref.updatedDate = new Date();
+    return xref;
+  }
+
+  public async revokeInvite(
+    userId: string,
+    groupId: string,
+    loggedInUser: string,
+  ): Promise<void> {
+    const user = await this.userModel.findById(userId);
+    const group = await this.groupModel.findById(groupId);
+    if (group == null) {
+      throw new HttpException('Invalid group', 400);
+    }
+    if (group.owner != loggedInUser) {
+      throw new HttpException('You do not own this Group', 400);
+    }
+    await this.userGroupInviteXrefModel.deleteOne({
+      groupId: group._id,
+      userId: user._id,
+    });
+  }
+
+  public async invitedUsers(
+    groupId: string,
+    loggedInUser: string,
+  ): Promise<User[]> {
+    const group = await this.groupModel.findById(groupId);
+    if (group == null) {
+      throw new HttpException('Invalid group', 400);
+    }
+    if (group.owner != loggedInUser) {
+      throw new HttpException('You do not own this Group', 400);
+    }
+    const xrefResp = await this.userGroupInviteXrefModel.find({
+      groupId: groupId,
+    });
+    const userIds = xrefResp.map((xref) => {
+      return xref.userId;
+    });
+    return this.userModel.where('_id').in(userIds);
+  }
+
+  public async acceptInvite(
+    groupId: string,
+    loggedInUser: string,
+  ): Promise<void> {
+    const user = await this.userModel.findOne({ email: loggedInUser });
+    const group = await this.groupModel.findById(groupId);
+    if (group == null) {
+      throw new HttpException('Invalid Group', 400);
+    }
+    const xrefResp = await this.userGroupXrefModel.findOne({
+      userId: user._id,
+      groupId: groupId,
+    });
+    if (xrefResp != null) {
+      await this.userGroupInviteXrefModel.deleteOne({
+        groupId: group._id,
+        userId: user._id,
+      });
+      throw new HttpException('You are already a member', 400);
+    }
+    var usersCount = await this.userGroupXrefModel
+      .find({ groupId: groupId })
+      .count();
+    if (usersCount >= 20) {
+      throw new HttpException('A group can have max 20 members', 400);
+    }
+    const xref = this.newUserGroupXref(user._id, groupId, loggedInUser);
+    const createdUserGroupXref = new this.userGroupXrefModel(xref);
+    await createdUserGroupXref.save();
+    await this.userGroupInviteXrefModel.deleteOne({
+      groupId: group._id,
+      userId: user._id,
+    });
+    const owner = await this.userModel.findOne({ email: group.owner });
+    await this.messageService.notifyGeneral(
+      group._id.toString(),
+      group.name,
+      `${user.name} has joined`,
+      [owner.registrationToken.toString()],
+    );
+  }
+
+  public async rejectInvite(
+    groupId: string,
+    loggedInUser: string,
+  ): Promise<void> {
+    const user = await this.userModel.findOne({ email: loggedInUser });
+    const group = await this.groupModel.findById(groupId);
+    if (group == null) {
+      throw new HttpException('Invalid Group', 400);
+    }
+    await this.userGroupInviteXrefModel.deleteOne({
+      groupId: group._id,
+      userId: user._id,
+    });
+    const owner = await this.userModel.findOne({ email: group.owner });
+    await this.messageService.notifyGeneral(
+      group._id.toString(),
+      group.name,
+      `${user.name} rejected your invite`,
+      [owner.registrationToken.toString()],
+    );
   }
 
   private newUserGroupXref(

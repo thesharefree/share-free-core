@@ -38,6 +38,7 @@ import {
   GroupTopicXref,
   GroupTopicXrefSchema,
 } from 'src/entities/group-topic-xref.entity';
+import { UserGroupInviteXref, UserGroupInviteXrefSchema } from 'src/entities/user-group-invite-xref.entity';
 
 @Module({
   imports: [
@@ -60,6 +61,9 @@ import {
     ]),
     MongooseModule.forFeature([
       { name: UserGroupXref.name, schema: UserGroupXrefSchema },
+    ]),
+    MongooseModule.forFeature([
+      { name: UserGroupInviteXref.name, schema: UserGroupInviteXrefSchema },
     ]),
     MongooseModule.forFeature([
       { name: UserAnswer.name, schema: UserAnswerSchema },

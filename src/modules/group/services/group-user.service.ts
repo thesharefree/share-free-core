@@ -84,16 +84,22 @@ export class GroupUserService {
     groupId: string,
     loggedInUser: string,
   ): Promise<User[]> {
+    const user = await this.userModel.findOne({ email: loggedInUser });
     const group = await this.groupModel.findById(groupId);
     if (group == null) {
       throw new HttpException('Invalid group', 400);
     }
+    let xrefResp = [];
     if (group.owner != loggedInUser) {
-      throw new HttpException('You do not own this Group', 400);
+      xrefResp = await this.userGroupRequestXrefModel.find({
+        userId: user._id,
+        groupId: groupId,
+      });
+    } else {
+      xrefResp = await this.userGroupRequestXrefModel.find({
+        groupId: groupId,
+      });
     }
-    const xrefResp = await this.userGroupRequestXrefModel.find({
-      groupId: groupId,
-    });
     const userIds = xrefResp.map((xref) => {
       return xref.userId;
     });
@@ -272,16 +278,22 @@ export class GroupUserService {
     groupId: string,
     loggedInUser: string,
   ): Promise<User[]> {
+    const user = await this.userModel.findOne({ email: loggedInUser });
     const group = await this.groupModel.findById(groupId);
     if (group == null) {
       throw new HttpException('Invalid group', 400);
     }
+    let xrefResp = [];
     if (group.owner != loggedInUser) {
-      throw new HttpException('You do not own this Group', 400);
+      xrefResp = await this.userGroupRequestXrefModel.find({
+        userId: user._id,
+        groupId: groupId,
+      });
+    } else {
+      xrefResp = await this.userGroupRequestXrefModel.find({
+        groupId: groupId,
+      });
     }
-    const xrefResp = await this.userGroupInviteXrefModel.find({
-      groupId: groupId,
-    });
     const userIds = xrefResp.map((xref) => {
       return xref.userId;
     });

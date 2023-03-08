@@ -106,7 +106,11 @@ export class GroupUserService {
     const userIds = xrefResp.map((xref) => {
       return xref.userId;
     });
-    return this.userModel.where('_id').in(userIds);
+    const users = await this.userModel.where('_id').in(userIds);
+    users.forEach((user) => {
+      user.requested = true;
+    });
+    return users;
   }
 
   public async acceptRequest(
@@ -304,7 +308,11 @@ export class GroupUserService {
     const userIds = xrefResp.map((xref) => {
       return xref.userId;
     });
-    return this.userModel.where('_id').in(userIds);
+    const users = await this.userModel.where('_id').in(userIds);
+    users.forEach((user) => {
+      user.invited = true;
+    });
+    return users;
   }
 
   public async acceptInvite(

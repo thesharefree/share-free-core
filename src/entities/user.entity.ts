@@ -65,6 +65,10 @@ export class User extends Location {
   disabled: boolean;
 
   isAdmin: boolean;
+
+  requested: boolean;
+
+  invited: boolean;
 }
 
 export type UserDocument = User & Document;

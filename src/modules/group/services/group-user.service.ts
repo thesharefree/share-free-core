@@ -95,7 +95,7 @@ export class GroupUserService {
     let xrefResp = [];
     if (group.owner != loggedInUser) {
       xrefResp = await this.userGroupRequestXrefModel.find({
-        userId: user._id,
+        userId: user._id.toString(),
         groupId: groupId,
       });
     } else {
@@ -234,13 +234,14 @@ export class GroupUserService {
     if (memberXrefResp != null) {
       throw new HttpException('User is already a member', 400);
     }
+    const owner = await this.userModel.findOne({ email: group.owner });
     const xref = this.newUserGroupInviteXref(user._id, groupId, loggedInUser);
     const createdUserGroupInviteXref = new this.userGroupInviteXrefModel(xref);
     await createdUserGroupInviteXref.save();
     await this.messageService.notifyGeneral(
       group._id.toString(),
       group.name,
-      `${user.name} has invited you to join`,
+      `${owner.name} has invited you to join`,
       [user.registrationToken.toString()],
     );
   }
@@ -291,12 +292,12 @@ export class GroupUserService {
     }
     let xrefResp = [];
     if (group.owner != loggedInUser) {
-      xrefResp = await this.userGroupRequestXrefModel.find({
-        userId: user._id,
+      xrefResp = await this.userGroupInviteXrefModel.find({
+        userId: user._id.toString(),
         groupId: groupId,
       });
     } else {
-      xrefResp = await this.userGroupRequestXrefModel.find({
+      xrefResp = await this.userGroupInviteXrefModel.find({
         groupId: groupId,
       });
     }

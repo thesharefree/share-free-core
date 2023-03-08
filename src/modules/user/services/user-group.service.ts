@@ -50,10 +50,10 @@ export class UserGroupService {
   ): Promise<GroupView[]> {
     const user = await this.userModel.findOne({ email: loggedInUser });
     const userActions = await this.userGroupActionsModel.find({
-      userId: user._id.toString(),
+      userId: user._id,
     });
     const groupIds = userActions.map((xref) => {
-      return xref['_id'].toString();
+      return xref.groupId.toString();
     });
     return await this.groupViewModel.aggregate([
       {
@@ -86,10 +86,10 @@ export class UserGroupService {
   ): Promise<GroupView[]> {
     const user = await this.userModel.findOne({ email: loggedInUser });
     const userInviteXrefs = await this.userGroupInviteXrefModel.find({
-      userId: user._id.toString(),
+      userId: user._id,
     });
     const groupIds = userInviteXrefs.map((xref) => {
-      return xref['_id'].toString();
+      return xref.groupId.toString();
     });
     return await this.groupViewModel.aggregate([
       {

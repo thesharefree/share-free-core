@@ -93,8 +93,8 @@ export class UserController {
 
   @Auth('ADMIN', 'USER')
   @Get('/search')
-  searchUser(@Param('userId') userId: string): Promise<User[]> {
-    return this.userService.searchUser(userId);
+  searchUser(@Query('keyword') keyword: string): Promise<User[]> {
+    return this.userService.searchUser(keyword);
   }
 
   @Auth('ADMIN', 'USER')

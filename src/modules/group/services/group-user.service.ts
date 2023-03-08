@@ -37,6 +37,9 @@ export class GroupUserService {
     if (group == null) {
       throw new HttpException('Invalid group', 400);
     }
+    if (group.owner == loggedInUser) {
+      throw new HttpException('You cannot request to join your own group', 400);
+    }
     const requestXrefResp = await this.userGroupRequestXrefModel.findOne({
       userId: user._id,
       groupId: groupId,
@@ -213,6 +216,9 @@ export class GroupUserService {
     }
     if (group.owner != loggedInUser) {
       throw new HttpException('You do not own this Group', 400);
+    }
+    if (user.email == loggedInUser) {
+      throw new HttpException('You cannot invite yourself', 400);
     }
     const requestXrefResp = await this.userGroupInviteXrefModel.findOne({
       userId: user._id,

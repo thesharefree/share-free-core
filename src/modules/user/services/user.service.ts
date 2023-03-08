@@ -145,7 +145,10 @@ export class UserService {
 
   public async searchUser(emailOrPhone: string): Promise<User[]> {
     return await this.userModel.find({
-      $or: [{ email: `/${emailOrPhone}/` }, { phone: `/${emailOrPhone}/` }],
+      $or: [
+        { email: new RegExp(emailOrPhone)},
+        { phone: new RegExp(emailOrPhone) },
+      ],
     });
   }
 

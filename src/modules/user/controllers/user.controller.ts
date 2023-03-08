@@ -97,12 +97,6 @@ export class UserController {
     return this.userService.searchUser(keyword);
   }
 
-  @Auth('ADMIN', 'USER')
-  @Get('/:userId')
-  getUserById(@Param('userId') userId: string): Promise<User> {
-    return this.userService.getUserById(userId);
-  }
-
   @Auth('USER')
   @Put('/updateLanguages')
   updateGroupLanguages(
@@ -111,6 +105,12 @@ export class UserController {
   ): Promise<void> {
     const loggedInUser = request['user'];
     return this.userService.updateLanguages(languages, loggedInUser.email);
+  }
+
+  @Auth('ADMIN', 'USER')
+  @Get('/:userId')
+  getUserById(@Param('userId') userId: string): Promise<User> {
+    return this.userService.getUserById(userId);
   }
 
   @Auth('ADMIN')

@@ -56,7 +56,7 @@ export class UserGroupService {
 
   public async getUserActionedGroups(loggedInUser: string): Promise<Group[]> {
     const user = await this.userModel.findOne({ email: loggedInUser });
-    const userActions = await this.userGroupActionsModel.find({ userId: user._id });
+    const userActions = await this.userGroupActionsModel.find({ userId: user._id.toString() });
     const groupIds = userActions.map((xref) => {
       return xref['_id'].toString();
     });
@@ -88,7 +88,7 @@ export class UserGroupService {
 
   public async getUserInvitedGroups(loggedInUser: string): Promise<Group[]> {
     const user = await this.userModel.findOne({ email: loggedInUser });
-    const userInviteXrefs = await this.userGroupInviteXrefModel.find({ userId: user._id });
+    const userInviteXrefs = await this.userGroupInviteXrefModel.find({ userId: user._id.toString() });
     const groupIds = userInviteXrefs.map((xref) => {
       return xref['_id'].toString();
     });

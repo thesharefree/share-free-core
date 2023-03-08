@@ -83,7 +83,7 @@ export class GroupUserService {
     });
   }
 
-  public async pendingUsers(
+  public async requestedUsers(
     groupId: string,
     loggedInUser: string,
   ): Promise<User[]> {

@@ -37,13 +37,13 @@ export class GroupUserController {
   }
 
   @Auth('USER')
-  @Get('/pendingUsers')
-  pendingUsers(
+  @Get('/requestedUsers')
+  requestedUsers(
     @Req() request: Request,
     @Query('groupId') groupId: string,
   ): Promise<User[]> {
     const loggedInUser = request['user'];
-    return this.groupUserService.pendingUsers(groupId, loggedInUser.email);
+    return this.groupUserService.requestedUsers(groupId, loggedInUser.email);
   }
 
   @Auth('USER')

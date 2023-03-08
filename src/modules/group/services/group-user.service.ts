@@ -106,7 +106,7 @@ export class GroupUserService {
     const userIds = xrefResp.map((xref) => {
       return xref.userId;
     });
-    const users = await this.userModel.where('_id').in(userIds);
+    const users = await this.userModel.where('_id').in(userIds).lean();
     users.forEach((user) => {
       user.requested = true;
     });
@@ -308,7 +308,7 @@ export class GroupUserService {
     const userIds = xrefResp.map((xref) => {
       return xref.userId;
     });
-    const users = await this.userModel.where('_id').in(userIds);
+    const users = await this.userModel.where('_id').in(userIds).lean();
     users.forEach((user) => {
       user.invited = true;
     });

@@ -1,21 +1,30 @@
 import { Injectable } from '@nestjs/common';
 import { User, UserDocument } from 'src/entities/user.entity';
+import { Group, GroupDocument } from 'src/entities/group.entity';
+import {
+  UserGroupXref,
+  UserGroupXrefDocument,
+} from 'src/entities/user-group-xref.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
   UserGroupActions,
   UserGroupActionsDocument,
 } from 'src/entities/user-group-actions.entity';
-import { GroupView, GroupViewDocument } from 'src/entities/vw_group.entity';
+import { Topic, TopicDocument } from 'src/entities/topic.entity';
 import {
-  UserGroupInviteXref,
-  UserGroupInviteXrefDocument,
-} from 'src/entities/user-group-invite-xref.entity';
+  GroupTopicXref,
+  GroupTopicXrefDocument,
+} from 'src/entities/group-topic-xref.entity';
+import { GroupView, GroupViewDocument } from 'src/entities/vw_group.entity';
+import { UserGroupInviteXref, UserGroupInviteXrefDocument } from 'src/entities/user-group-invite-xref.entity';
 
 @Injectable()
 export class UserGroupService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
+    @InjectModel(GroupTopicXref.name)
+    private readonly groupTopicXrefModel: Model<GroupTopicXrefDocument>,
     @InjectModel(GroupView.name)
     private readonly groupViewModel: Model<GroupViewDocument>,
     @InjectModel(UserGroupActions.name)
@@ -24,7 +33,7 @@ export class UserGroupService {
     private readonly userGroupInviteXrefModel: Model<UserGroupInviteXrefDocument>,
   ) {}
 
-  public async getUserGroups(loggedInUser: string): Promise<GroupView[]> {
+  public async getUserGroups(loggedInUser: string): Promise<Group[]> {
     const user = await this.userModel.findOne({ email: loggedInUser });
     return await this.groupViewModel.aggregate([
       {
@@ -45,11 +54,9 @@ export class UserGroupService {
     ]);
   }
 
-  public async getUserActionedGroups(loggedInUser: string): Promise<GroupView[]> {
+  public async getUserActionedGroups(loggedInUser: string): Promise<Group[]> {
     const user = await this.userModel.findOne({ email: loggedInUser });
-    const userActions = await this.userGroupActionsModel.find({
-      userId: user._id,
-    });
+    const userActions = await this.userGroupActionsModel.find({ userId: user._id });
     const groupIds = userActions.map((xref) => {
       return xref['_id'].toString();
     });
@@ -62,16 +69,26 @@ export class UserGroupService {
         },
       },
       {
+        $addFields: {
+          myActions: {
+            $filter: {
+              input: '$userActions',
+              cond: {
+                $eq: ['$$this.userId', user._id.toString()],
+              },
+            },
+          },
+        },
+      },
+      {
         $unset: ['userActions', 'topicIds'],
       },
     ]);
   }
 
-  public async getUserInvitedGroups(loggedInUser: string): Promise<GroupView[]> {
+  public async getUserInvitedGroups(loggedInUser: string): Promise<Group[]> {
     const user = await this.userModel.findOne({ email: loggedInUser });
-    const userInviteXrefs = await this.userGroupInviteXrefModel.find({
-      userId: user._id,
-    });
+    const userInviteXrefs = await this.userGroupInviteXrefModel.find({ userId: user._id });
     const groupIds = userInviteXrefs.map((xref) => {
       return xref['_id'].toString();
     });

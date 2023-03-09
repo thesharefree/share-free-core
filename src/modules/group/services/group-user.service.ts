@@ -488,9 +488,6 @@ export class GroupUserService {
     if (group == null) {
       throw new HttpException('Invalid Group', 400);
     }
-    if (group.owner != loggedInUser) {
-      throw new HttpException('You do not own this Group', 400);
-    }
     await this.userGroupXrefModel.deleteOne({
       userId: user._id,
       groupId: groupId,

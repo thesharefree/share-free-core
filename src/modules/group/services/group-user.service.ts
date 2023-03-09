@@ -140,6 +140,13 @@ export class GroupUserService {
       });
       throw new HttpException('User is already a member', 400);
     }
+    const requestXref = await this.userGroupRequestXrefModel.findOne({
+      groupId: group._id,
+      userId: user._id,
+    });
+    if(requestXref == null) {
+      throw new HttpException('User did not ask to join the group', 400);
+    }
     var usersCount = await this.userGroupXrefModel
       .find({ groupId: groupId })
       .count();
@@ -334,6 +341,13 @@ export class GroupUserService {
         userId: user._id,
       });
       throw new HttpException('You are already a member', 400);
+    }
+    const inviteXref = await this.userGroupInviteXrefModel.findOne({
+      groupId: group._id,
+      userId: user._id,
+    });
+    if(inviteXref == null) {
+      throw new HttpException('You were not invited to the group', 400);
     }
     var usersCount = await this.userGroupXrefModel
       .find({ groupId: groupId })

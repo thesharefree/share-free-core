@@ -29,7 +29,7 @@
     "@nestjs/mongoose": "^9.2.0",
     "@nestjs/platform-express": "^9.1.2",
     "@nestjs/swagger": "^6.1.2",
-    "class-validator": "^0.13.2",
+    "class-validator": "^0.14.0",
     "crc-32": "^1.2.2",
     "cuint": "^0.2.2",
     "dotenv": "^16.0.2",

@@ -25,6 +25,9 @@ export class Group extends Location {
   banner: string;
 
   @Prop()
+  inviteOnly: boolean;
+
+  @Prop()
   languages: string[];
 
   @Prop()

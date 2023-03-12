@@ -20,7 +20,7 @@ export class UserService {
     if (user == null) {
       throw new HttpException('Invalid User', 400);
     }
-    if(user.firebaseUserId !== loggedInUser.firebaseUserId) {
+    if (user.firebaseUserId !== loggedInUser.firebaseUserId) {
       await this.userModel.findByIdAndUpdate(user._id, {
         firebaseUserId: loggedInUser.firebaseUserId,
       });
@@ -132,7 +132,7 @@ export class UserService {
     await this.userModel.updateOne(
       { _id: userResp._id },
       {
-        photoUrl: storageUrl.split("?")[0],
+        photoUrl: storageUrl.split('?')[0],
         updatedBy: loggedInUser,
         updatedDate: new Date(),
       },
@@ -143,14 +143,26 @@ export class UserService {
     return await this.userModel.find();
   }
 
+  public async searchUser(emailOrPhone: string): Promise<User[]> {
+    return await this.userModel.find({
+      $or: [
+        { email: new RegExp(emailOrPhone)},
+        { phone: new RegExp(emailOrPhone) },
+      ],
+    });
+  }
+
   public async getUserById(userId: string): Promise<User> {
     return await this.userModel.findById(userId);
   }
 
-  public async updateLanguages(languages: string, loggedInUser: string): Promise<void> {
+  public async updateLanguages(
+    languages: string,
+    loggedInUser: string,
+  ): Promise<void> {
     const user = await this.userModel.findOne({ email: loggedInUser });
     await this.userModel.findByIdAndUpdate(user._id, {
-      languages: languages.split(","),
+      languages: languages.split(','),
       updatedBy: loggedInUser,
       updatedDate: new Date(),
     });

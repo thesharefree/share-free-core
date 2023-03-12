@@ -20,41 +20,120 @@ export class GroupUserController {
   @Put('/askToJoin')
   askToJoin(
     @Req() request: Request,
-    @Query('groupId') groupIds: string,
+    @Query('groupId') groupId: string,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.groupUserService.askToJoin(groupIds, loggedInUser.email);
+    return this.groupUserService.askToJoin(groupId, loggedInUser.email);
   }
 
   @Auth('USER')
   @Delete('/revokeRequest')
   revokeRequest(
     @Req() request: Request,
-    @Query('groupId') groupIds: string,
+    @Query('groupId') groupId: string,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.groupUserService.revokeRequest(groupIds, loggedInUser.email);
+    return this.groupUserService.revokeRequest(groupId, loggedInUser.email);
   }
 
   @Auth('USER')
-  @Get('/pendingUsers')
-  pendingUsers(@Query('groupId') groupIds: string): Promise<User[]> {
-    return this.groupUserService.pendingUsers(groupIds);
+  @Get('/requestedUsers')
+  requestedUsers(
+    @Req() request: Request,
+    @Query('groupId') groupId: string,
+  ): Promise<User[]> {
+    const loggedInUser = request['user'];
+    return this.groupUserService.requestedUsers(groupId, loggedInUser.email);
   }
 
   @Auth('USER')
-  @Put('/addToGroup')
-  addToGroup(
+  @Put('/acceptRequest')
+  acceptRequest(
     @Req() request: Request,
     @Query('userId') userId: string,
-    @Query('groupId') groupIds: string,
+    @Query('groupId') groupId: string,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.groupUserService.addToGroup(
+    return this.groupUserService.acceptRequest(
       userId,
-      groupIds,
+      groupId,
       loggedInUser.email,
     );
+  }
+
+  @Auth('USER')
+  @Put('/rejectRequest')
+  rejectRequest(
+    @Req() request: Request,
+    @Query('userId') userId: string,
+    @Query('groupId') groupId: string,
+  ): Promise<void> {
+    const loggedInUser = request['user'];
+    return this.groupUserService.rejectRequest(
+      userId,
+      groupId,
+      loggedInUser.email,
+    );
+  }
+
+  @Auth('USER')
+  @Put('/inviteUser')
+  inviteUser(
+    @Req() request: Request,
+    @Query('userId') userId: string,
+    @Query('groupId') groupId: string,
+  ): Promise<void> {
+    const loggedInUser = request['user'];
+    return this.groupUserService.inviteUser(
+      userId,
+      groupId,
+      loggedInUser.email,
+    );
+  }
+
+  @Auth('USER')
+  @Delete('/revokeInvite')
+  revokeInvite(
+    @Req() request: Request,
+    @Query('userId') userId: string,
+    @Query('groupId') groupId: string,
+  ): Promise<void> {
+    const loggedInUser = request['user'];
+    return this.groupUserService.revokeInvite(
+      userId,
+      groupId,
+      loggedInUser.email,
+    );
+  }
+
+  @Auth('USER')
+  @Get('/invitedUsers')
+  invitedUsers(
+    @Req() request: Request,
+    @Query('groupId') groupId: string,
+  ): Promise<User[]> {
+    const loggedInUser = request['user'];
+    return this.groupUserService.invitedUsers(groupId, loggedInUser.email);
+  }
+
+  @Auth('USER')
+  @Put('/acceptInvite')
+  acceptInvite(
+    @Req() request: Request,
+    @Query('groupId') groupId: string,
+  ): Promise<void> {
+    const loggedInUser = request['user'];
+    return this.groupUserService.acceptInvite(groupId, loggedInUser.email);
+  }
+
+  @Auth('USER')
+  @Put('/rejectInvite')
+  rejectInvite(
+    @Req() request: Request,
+    @Query('groupId') groupId: string,
+  ): Promise<void> {
+    const loggedInUser = request['user'];
+    return this.groupUserService.rejectInvite(groupId, loggedInUser.email);
   }
 
   @Auth('USER')
@@ -62,12 +141,12 @@ export class GroupUserController {
   toggleAdmin(
     @Req() request: Request,
     @Query('userId') userId: string,
-    @Query('groupId') groupIds: string,
+    @Query('groupId') groupId: string,
   ): Promise<void> {
     const loggedInUser = request['user'];
     return this.groupUserService.toggleAdmin(
       userId,
-      groupIds,
+      groupId,
       loggedInUser.email,
     );
   }

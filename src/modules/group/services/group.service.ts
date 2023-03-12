@@ -130,6 +130,7 @@ export class GroupService {
         name: group.name,
         description: group.description,
         houseId: group.houseId,
+        inviteOnly: group.inviteOnly,
         latitude: group.latitude,
         longitude: group.longitude,
         city: group.city,

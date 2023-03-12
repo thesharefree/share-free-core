@@ -16,7 +16,7 @@ export class GroupSearchService {
     @InjectModel(House.name) private readonly houseModel: Model<HouseDocument>,
   ) {}
 
-  public async searchGroups(keywordsStr: string): Promise<Group[]> {
+  public async searchGroups(keywordsStr: string): Promise<GroupView[]> {
     const groupFind = [
       {
         $search: {

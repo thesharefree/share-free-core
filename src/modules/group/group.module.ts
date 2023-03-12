@@ -44,6 +44,10 @@ import { House, HouseSchema } from 'src/entities/house.entity';
 import { GroupView, GroupViewSchema } from 'src/entities/vw_group.entity';
 import { Connection } from 'mongoose';
 import { CreateGroupView } from 'src/entities/create_vw_groups';
+import {
+  UserGroupInviteXref,
+  UserGroupInviteXrefSchema,
+} from 'src/entities/user-group-invite-xref.entity';
 
 @Module({
   imports: [
@@ -74,6 +78,9 @@ import { CreateGroupView } from 'src/entities/create_vw_groups';
     ]),
     MongooseModule.forFeature([
       { name: UserGroupRequestXref.name, schema: UserGroupRequestXrefSchema },
+    ]),
+    MongooseModule.forFeature([
+      { name: UserGroupInviteXref.name, schema: UserGroupInviteXrefSchema },
     ]),
     MongooseModule.forFeature([
       { name: UserGroupActions.name, schema: UserGroupActionsSchema },

@@ -73,12 +73,13 @@ export class UserController {
           fileType: /[\.?\/?]+(gif|jpe?g|tiff?|png|webp|bmp)$/i,
         })
         .addMaxSizeValidator({
-          maxSize: 2000000
+          maxSize: 2000000,
         })
         .build({
-          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
         }),
-    ) file: UploadedFileMetadata,
+    )
+    file: UploadedFileMetadata,
   ): Promise<void> {
     const loggedInUser = request['user'];
     return this.userService.uploadPhoto(file, loggedInUser.email);
@@ -91,9 +92,9 @@ export class UserController {
   }
 
   @Auth('ADMIN', 'USER')
-  @Get('/:userId')
-  getUserById(@Param('userId') userId: string): Promise<User> {
-    return this.userService.getUserById(userId);
+  @Get('/search')
+  searchUser(@Query('keyword') keyword: string): Promise<User[]> {
+    return this.userService.searchUser(keyword);
   }
 
   @Auth('USER')
@@ -104,6 +105,12 @@ export class UserController {
   ): Promise<void> {
     const loggedInUser = request['user'];
     return this.userService.updateLanguages(languages, loggedInUser.email);
+  }
+
+  @Auth('ADMIN', 'USER')
+  @Get('/:userId')
+  getUserById(@Param('userId') userId: string): Promise<User> {
+    return this.userService.getUserById(userId);
   }
 
   @Auth('ADMIN')
@@ -118,9 +125,7 @@ export class UserController {
 
   @Auth('ADMIN', 'USER')
   @Put('/toggle')
-  toggleSelf(
-    @Req() request: Request,
-  ): Promise<void> {
+  toggleSelf(@Req() request: Request): Promise<void> {
     const loggedInUser = request['user'];
     return this.userService.toggleSelf(loggedInUser.email);
   }

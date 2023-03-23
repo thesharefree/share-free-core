@@ -37,8 +37,30 @@ export class GroupService {
     if (group == null) {
       throw new HttpException('Invalid Group', 400);
     }
-    if(group.deleted) {
+    if (group.deleted) {
       throw new HttpException('Group has been deleted', 400);
+    }
+    if (group.callInProgress) {
+      let reset = group.callStarted == null;
+      if (!reset) {
+        const timeNow = new Date();
+        const timeSinceCallStarted =
+          timeNow.getTime() - group.callStarted.getTime();
+        if (timeSinceCallStarted > 3600000) {
+          reset = true;
+        }
+      }
+      if(reset) {
+        await this.groupModel.updateOne(
+          { _id: groupId },
+          {
+            callInProgress: false,
+            callStarted: null,
+          },
+        );
+        group.callInProgress = false;
+        group.callStarted = null;
+      }
     }
     return group;
   }
@@ -58,10 +80,10 @@ export class GroupService {
         },
       },
     ]);
-    if(owenedGroups.length >= 40) {
+    if (owenedGroups.length >= 40) {
       throw new HttpException('You cannot own more than 40 groups', 400);
     }
-    if(group.houseId) {
+    if (group.houseId) {
       const groupsInHouses = await this.groupModel.aggregate([
         {
           $match: {
@@ -76,8 +98,11 @@ export class GroupService {
           },
         },
       ]);
-      if(groupsInHouses.length >= 20) {
-        throw new HttpException('You cannot create more than 20 groups in a house', 400);
+      if (groupsInHouses.length >= 20) {
+        throw new HttpException(
+          'You cannot create more than 20 groups in a house',
+          400,
+        );
       }
     }
     group['_id'] = null;
@@ -105,7 +130,7 @@ export class GroupService {
     if (extGroup.owner !== loggedInUser) {
       throw new HttpException("You don't own this Group", 400);
     }
-    if(group.houseId) {
+    if (group.houseId) {
       const groupsInHouses = await this.groupModel.aggregate([
         {
           $match: {
@@ -120,8 +145,11 @@ export class GroupService {
           },
         },
       ]);
-      if(groupsInHouses.length >= 20) {
-        throw new HttpException('You cannot have more than 20 groups in a house', 400);
+      if (groupsInHouses.length >= 20) {
+        throw new HttpException(
+          'You cannot have more than 20 groups in a house',
+          400,
+        );
       }
     }
     await this.groupModel.updateOne(
@@ -224,7 +252,7 @@ export class GroupService {
     await this.groupModel.updateOne(
       { _id: group._id },
       {
-        banner: storageUrl.split("?")[0],
+        banner: storageUrl.split('?')[0],
         updatedBy: loggedInUser,
         updatedDate: new Date(),
       },
@@ -288,6 +316,7 @@ export class GroupService {
       { _id: groupId },
       {
         callInProgress: callInProgress,
+        callStarted: callInProgress ? new Date() : null,
       },
     );
     await this.messageService.notifyConference(

@@ -20,7 +20,7 @@ export class HouseGroupService {
     if (house == null) {
       throw new HttpException('Invalid house', 400);
     } else {
-      return await this.groupModel.find({ houseId: house._id });
+      return await this.groupModel.find({ houseId: house._id, deleted: false });
     }
   }
 

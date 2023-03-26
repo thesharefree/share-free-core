@@ -47,6 +47,9 @@ export class Group extends Location {
 
   @Prop()
   callInProgress: boolean;
+
+  @Prop()
+  callStarted: Date;
 }
 
 export type GroupDocument = Group & Document;

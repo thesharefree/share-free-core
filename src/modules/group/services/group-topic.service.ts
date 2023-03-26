@@ -25,25 +25,22 @@ export class GroupTopicService {
     const group = await this.groupModel.findById(groupId);
     if (group == null) {
       throw new HttpException('Invalid group', 400);
-    } else {
-      await this.groupTopicXrefModel.deleteMany({ groupId: group._id });
-      // topicIds.split(',').forEach(async (topicId) => {
-      for (const topicId of topicIds.split(',')) {
-        const topic = await this.topicModel.findById(topicId);
-        if (topic != null) {
-          const xrefResp = await this.groupTopicXrefModel.findOne({
-            groupId: group._id,
-            topicId: topicId,
-          });
-          if (xrefResp == null) {
-            const xref = this.newGroupTopicXref(
-              group._id,
-              topicId,
-              loggedInUser,
-            );
-            const createdGroupTopicXref = new this.groupTopicXrefModel(xref);
-            await createdGroupTopicXref.save();
-          }
+    }
+    if (topicIds.split(',').length > 5) {
+      throw new HttpException('Please select a maximum of 5 topics', 400);
+    }
+    await this.groupTopicXrefModel.deleteMany({ groupId: group._id });
+    for (const topicId of topicIds.split(',')) {
+      const topic = await this.topicModel.findById(topicId);
+      if (topic != null) {
+        const xrefResp = await this.groupTopicXrefModel.findOne({
+          groupId: group._id,
+          topicId: topicId,
+        });
+        if (xrefResp == null) {
+          const xref = this.newGroupTopicXref(group._id, topicId, loggedInUser);
+          const createdGroupTopicXref = new this.groupTopicXrefModel(xref);
+          await createdGroupTopicXref.save();
         }
       }
     }

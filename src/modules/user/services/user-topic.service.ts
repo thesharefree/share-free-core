@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { User, UserDocument } from 'src/entities/user.entity';
 import { Topic, TopicDocument } from 'src/entities/topic.entity';
 import {
@@ -23,8 +23,10 @@ export class UserTopicService {
   ): Promise<void> {
     const user = await this.userModel.findOne({ email: loggedInUser });
     await this.userTopicXrefModel.deleteMany({ userId: user._id });
+    if (topicIds.split(',').length > 5) {
+      throw new HttpException('Please select a maximum of 5 topics', 400);
+    }
     var isTopics = false;
-    // await topicIds.split(',').forEach(async (topicId) => {
     for (const topicId of topicIds.split(',')) {
       const topic = await this.topicModel.findById(topicId);
       if (topic != null) {

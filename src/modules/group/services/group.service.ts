@@ -17,7 +17,6 @@ import {
 } from 'src/entities/user-group-xref.entity';
 import { User, UserDocument } from 'src/entities/user.entity';
 import { MessageService } from 'src/modules/message/services/message.service';
-import { GroupTopicController } from '../controllers/group-topic.controller';
 
 @Injectable()
 export class GroupService {
@@ -50,7 +49,7 @@ export class GroupService {
           reset = true;
         }
       }
-      if(reset) {
+      if (reset) {
         await this.groupModel.updateOne(
           { _id: groupId },
           {
@@ -212,6 +211,9 @@ export class GroupService {
     const extGroup = await this.groupModel.findById(groupId);
     if (extGroup == null) {
       throw new HttpException('Invalid Group', 400);
+    }
+    if (languages.split(',').length > 5) {
+      throw new HttpException('Please select a maximum of 5 languages', 400);
     }
     const isOwner = extGroup.owner === loggedInUser;
     const xrefResp = await this.userGroupXrefModel.findOne({

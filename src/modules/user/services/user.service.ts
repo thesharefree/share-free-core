@@ -161,6 +161,9 @@ export class UserService {
     loggedInUser: string,
   ): Promise<void> {
     const user = await this.userModel.findOne({ email: loggedInUser });
+    if (languages.split(',').length > 5) {
+      throw new HttpException('Please select a maximum of 5 languages', 400);
+    }
     await this.userModel.findByIdAndUpdate(user._id, {
       languages: languages.split(','),
       updatedBy: loggedInUser,

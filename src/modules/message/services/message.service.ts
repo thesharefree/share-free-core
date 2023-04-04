@@ -99,7 +99,10 @@ export class MessageService {
   }
 
   private async myGroupChats(loggedInUser: string): Promise<any[]> {
-    const myGroups = await this.groupModel.find({ owner: loggedInUser });
+    const myGroups = await this.groupModel.find({
+      owner: loggedInUser,
+      deleted: { $ne: true },
+    });
     return await Promise.all(
       myGroups.map(async (group) => {
         const groupMessages = await this.messageModel.find({
@@ -129,6 +132,9 @@ export class MessageService {
     return await Promise.all(
       xrefResp.map(async (xref) => {
         const group = await this.groupModel.findById(xref.groupId);
+        if (group.deleted) {
+          return null;
+        }
         const groupMessages = await this.messageModel.find({
           recipientId: group._id,
           recipientType: RecipientType.GROUP,

@@ -26,70 +26,6 @@ export class MessageService {
     private readonly messageModel: Model<MessageDocument>,
   ) {}
 
-  // public async sendMessage(
-  //   message: Message,
-  //   loggedInUser: string,
-  // ): Promise<void> {
-  //   const user = await this.userModel.findOne({ email: loggedInUser });
-  //   message.sender = user._id;
-  //   message.senderName = user.name;
-  //   message['_id'] = null;
-  //   message.active = true;
-  //   message.createdBy = loggedInUser;
-  //   message.createdDate = new Date();
-  //   message.updatedBy = loggedInUser;
-  //   message.updatedDate = new Date();
-  //   const createdMessage = new this.messageModel(message);
-  //   await createdMessage.save();
-  //   var messagePayload: messaging.MulticastMessage = {
-  //     data: {
-  //       type: 'CHAT',
-  //       title: '',
-  //       message: message.message,
-  //       recipientId: message.recipientId,
-  //       recipientType: message.recipientType,
-  //       sender: user._id.toString(),
-  //       senderName: user.name,
-  //       createdBy: loggedInUser,
-  //       createdDate: message.createdDate.toISOString(),
-  //     },
-  //     tokens: [],
-  //   };
-  //   if (RecipientType.GROUP == message.recipientType) {
-  //     const group = await this.groupModel.findById(message.recipientId);
-  //     const owner = await this.userModel.findOne({ email: group.owner });
-  //     const xrefResp = await this.userGroupXrefModel.find({
-  //       groupId: group._id,
-  //     });
-  //     let userIds = xrefResp.map((xref) => {
-  //       return xref.userId;
-  //     });
-  //     console.log(userIds);
-  //     userIds.push(owner._id.toString());
-  //     console.log(userIds);
-  //     userIds = userIds.filter((userId) => userId != user._id.toString());
-  //     console.log(userIds);
-  //     const users = await this.userModel.where('_id').in(userIds);
-  //     const userTokens = users.map((user) => {
-  //       return user.registrationToken;
-  //     });
-  //     messagePayload.tokens = userTokens;
-  //     messagePayload.data.title = group.name;
-  //   } else {
-  //     const recipient = await this.userModel.findById(message.recipientId);
-  //     if (recipient == null) {
-  //       throw new HttpException('Invalid User', 400);
-  //     }
-  //     messagePayload.tokens.push(recipient.registrationToken);
-  //     messagePayload.data.title = user.name;
-  //   }
-  //   try {
-  //     await defaultApp.messaging().sendMulticast(messagePayload);
-  //   } catch (ex) {
-  //     console.log(JSON.stringify(ex));
-  //   }
-  // }
-
   public async loadChats(loggedInUser: string): Promise<any[]> {
     return this.myGroupChats(loggedInUser).then((chats) => {
       return this.joinedGroupChats(loggedInUser).then((joinedChats) => {
@@ -118,6 +54,7 @@ export class MessageService {
           banner: group.banner,
           type: RecipientType.GROUP,
           messages: groupMessages,
+          lastRead: group.ownerMessageLastRead,
         };
       }),
     );
@@ -148,48 +85,33 @@ export class MessageService {
           banner: group.banner,
           type: RecipientType.GROUP,
           messages: groupMessages,
+          lastRead: xref.messageLastRead,
         };
       }),
     );
   }
 
-  // public async loadMessages(
-  //   recipientId: string,
-  //   recipientType: string,
-  //   loggedInUser: string,
-  // ): Promise<Message[]> {
-  //   const user = await this.userModel.findOne({ email: loggedInUser });
-  //   if (recipientType == RecipientType.GROUP) {
-  //     const xrefResp = await this.userGroupXrefModel.findOne({
-  //       groupId: recipientId,
-  //       userId: user._id,
-  //       active: true,
-  //     });
-  //     if (xrefResp == null || !xrefResp.active) {
-  //       throw new HttpException("You don't belong in this group", 400);
-  //     }
-  //     return await this.messageModel.find({
-  //       recipientId: recipientId,
-  //       recipientType: RecipientType.GROUP,
-  //       createdDate: {
-  //         $gte: xrefResp.createdDate,
-  //       },
-  //     });
-  //   } else {
-  //     return await this.messageModel.find({
-  //       $and: [
-  //         { recipientType: RecipientType.USER },
-  //         { createdDate: { $gte: user.createdDate } },
-  //         {
-  //           $or: [
-  //             { $and: [{ recipientId: recipientId }, { sender: user._id }] },
-  //             { $and: [{ recipientId: user._id }, { sender: recipientId }] },
-  //           ],
-  //         },
-  //       ],
-  //     });
-  //   }
-  // }
+  public async lastRead(groupId: string, loggedInUser: string): Promise<void> {
+    const user = await this.userModel.findOne({ email: loggedInUser });
+    const group = await this.groupModel.findById(groupId);
+    if (group.owner !== loggedInUser) {
+      await this.userGroupXrefModel.updateOne(
+        { groupId: groupId, userId: user._id.toString() },
+        {
+          messageLastRead: new Date(),
+          updatedBy: loggedInUser,
+          updatedDate: new Date(),
+        },
+      );
+    } else {
+      await this.groupModel.updateOne(
+        { _id: groupId },
+        {
+          ownerMessageLastRead: new Date(),
+        },
+      );
+    }
+  }
 
   public async notifyConference(
     groupId: string,

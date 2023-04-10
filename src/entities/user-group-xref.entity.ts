@@ -12,6 +12,9 @@ export class UserGroupXref extends Audit {
 
   @Prop()
   isAdmin: boolean;
+  
+  @Prop()
+  messageLastRead: Date;
 }
 
 export type UserGroupXrefDocument = UserGroupXref & Document;

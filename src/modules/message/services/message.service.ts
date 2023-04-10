@@ -91,25 +91,31 @@ export class MessageService {
     );
   }
 
-  public async lastRead(groupId: string, loggedInUser: string): Promise<void> {
+  public async lastRead(
+    chatId: string,
+    chatType: string,
+    loggedInUser: string,
+  ): Promise<void> {
     const user = await this.userModel.findOne({ email: loggedInUser });
-    const group = await this.groupModel.findById(groupId);
-    if (group.owner !== loggedInUser) {
-      await this.userGroupXrefModel.updateOne(
-        { groupId: groupId, userId: user._id.toString() },
-        {
-          messageLastRead: new Date(),
-          updatedBy: loggedInUser,
-          updatedDate: new Date(),
-        },
-      );
-    } else {
-      await this.groupModel.updateOne(
-        { _id: groupId },
-        {
-          ownerMessageLastRead: new Date(),
-        },
-      );
+    if (chatType === 'GROUP') {
+      const group = await this.groupModel.findById(chatId);
+      if (group.owner !== loggedInUser) {
+        await this.userGroupXrefModel.updateOne(
+          { groupId: chatId, userId: user._id.toString() },
+          {
+            messageLastRead: new Date(),
+            updatedBy: loggedInUser,
+            updatedDate: new Date(),
+          },
+        );
+      } else {
+        await this.groupModel.updateOne(
+          { _id: chatId },
+          {
+            ownerMessageLastRead: new Date(),
+          },
+        );
+      }
     }
   }
 

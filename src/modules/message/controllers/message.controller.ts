@@ -28,9 +28,10 @@ export class MessageController {
   @Put('/lastRead')
   lastRead(
     @Req() request: Request,
-    @Query('groupId') groupId: string,
+    @Query('chatId') chatId: string,
+    @Query('chatType') chatType: string,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.messageService.lastRead(groupId, loggedInUser.email);
+    return this.messageService.lastRead(chatId, chatType, loggedInUser.email);
   }
 }

@@ -14,8 +14,10 @@ export class UserHouseService {
   public async getUserHouses(loggedInUser: string): Promise<House[]> {
     const houses = await this.houseModel.find({ owner: loggedInUser }).lean();
     const liveHouses = houses.filter((house) => !house.deleted);
-    for(const house of liveHouses) {
-      const groups = await this.groupModel.find({houseId: house._id}).count();
+    for (const house of liveHouses) {
+      const groups = await this.groupModel
+        .find({ houseId: house._id.toString(), deleted: { $ne: true } })
+        .count();
       house.groups = groups;
     }
     return liveHouses;

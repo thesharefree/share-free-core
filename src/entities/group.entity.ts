@@ -50,6 +50,9 @@ export class Group extends Location {
 
   @Prop()
   callStarted: Date;
+  
+  @Prop()
+  ownerMessageLastRead: Date;
 }
 
 export type GroupDocument = Group & Document;

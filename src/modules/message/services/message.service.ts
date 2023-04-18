@@ -125,6 +125,7 @@ export class MessageService {
     callInProgress: boolean,
   ) {
     const group = await this.groupModel.findById(groupId);
+    const owner = await this.userModel.findOne({ email: group.owner });
     var messagePayload: messaging.MulticastMessage = {
       data: {
         type: 'CONFERENCE',
@@ -139,6 +140,7 @@ export class MessageService {
     let userIds = xrefResp.map((xref) => {
       return xref.userId;
     });
+    userIds.push(owner._id.toString());
     if (userIds.includes(loggedInUserId)) {
       userIds.splice(userIds.indexOf(loggedInUserId), 1);
     }

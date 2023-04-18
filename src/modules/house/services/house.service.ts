@@ -29,7 +29,7 @@ export class HouseService {
     if (house == null) {
       throw new HttpException('Invalid House', 400);
     }
-    if(house.deleted) {
+    if (house.deleted) {
       throw new HttpException('House has been deleted', 400);
     }
     return house;
@@ -54,7 +54,7 @@ export class HouseService {
         },
       },
     ]);
-    if(owenedHouses.length >= 10) {
+    if (owenedHouses.length >= 10) {
       throw new HttpException('You cannot own more than 10 houses', 400);
     }
     house['_id'] = null;
@@ -122,7 +122,7 @@ export class HouseService {
     await this.houseModel.updateOne(
       { _id: extHouse._id },
       {
-        banner: storageUrl.split("?")[0],
+        banner: storageUrl.split('?')[0],
         updatedBy: loggedInUser.email,
         updatedDate: new Date(),
       },
@@ -169,7 +169,10 @@ export class HouseService {
         updatedDate: new Date(),
       },
     );
-    await this.houseGroupService.updateGroupsOfDeletedHouse(houseId, loggedInUser.email);
+    await this.houseGroupService.updateGroupsOfDeletedHouse(
+      houseId,
+      loggedInUser.email,
+    );
   }
 
   public async report(

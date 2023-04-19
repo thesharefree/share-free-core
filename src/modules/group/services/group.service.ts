@@ -15,7 +15,7 @@ import {
   UserGroupXref,
   UserGroupXrefDocument,
 } from 'src/entities/user-group-xref.entity';
-import { User, UserDocument } from 'src/entities/user.entity';
+import { Role, User, UserDocument } from 'src/entities/user.entity';
 import { MessageService } from 'src/modules/message/services/message.service';
 
 @Injectable()
@@ -30,6 +30,10 @@ export class GroupService {
     private readonly messageService: MessageService,
     private readonly azureStorage: AzureStorageService,
   ) {}
+
+  public async getAllGroups(): Promise<Group[]> {
+    return await this.groupModel.find({ deleted: { $ne: true } });
+  }
 
   public async getGroup(groupId: string): Promise<Group> {
     const group = await this.groupModel.findById(groupId);
@@ -261,12 +265,13 @@ export class GroupService {
     );
   }
 
-  public async toggle(groupId: string, loggedInUser: string): Promise<void> {
+  public async toggle(groupId: string, loggedInUser: User): Promise<void> {
     const extGroup = await this.groupModel.findById(groupId);
     if (extGroup == null) {
       throw new HttpException('Invalid Group', 400);
     }
-    if (extGroup.owner !== loggedInUser) {
+    if (extGroup.owner !== loggedInUser.email &&
+      !loggedInUser.roles.includes(Role.ADMIN)) {
       throw new HttpException("You don't own this Group", 400);
     }
     await this.groupModel.updateOne(
@@ -278,12 +283,15 @@ export class GroupService {
     );
   }
 
-  public async delete(groupId: string, loggedInUser: string): Promise<void> {
+  public async delete(groupId: string, loggedInUser: User): Promise<void> {
     const extGroup = await this.groupModel.findById(groupId);
     if (extGroup == null) {
       throw new HttpException('Invalid Group', 400);
     }
-    if (extGroup.owner !== loggedInUser) {
+    if (
+      extGroup.owner !== loggedInUser.email &&
+      !loggedInUser.roles.includes(Role.ADMIN)
+    ) {
       throw new HttpException("You don't own this Group", 400);
     }
     await this.groupModel.updateOne(

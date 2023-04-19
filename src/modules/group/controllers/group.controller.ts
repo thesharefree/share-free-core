@@ -27,6 +27,12 @@ import { GroupService } from '../services/group.service';
 export class GroupController {
   constructor(private readonly groupService: GroupService) {}
 
+  @Auth('ADMIN')
+  @Get('/all')
+  getAllGroups(): Promise<Group[]> {
+    return this.groupService.getAllGroups();
+  }
+
   @Auth('USER')
   @Post('/create')
   createGroup(@Req() request: Request, @Body() group: Group): Promise<Group> {
@@ -105,14 +111,14 @@ export class GroupController {
     return this.groupService.getGroup(groupId);
   }
 
-  @Auth('USER')
+  @Auth('USER', 'ADMIN')
   @Put('/toggle/:groupId')
   toggleGroup(
     @Param('groupId') groupId: string,
     @Req() request: Request,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.groupService.toggle(groupId, loggedInUser.email);
+    return this.groupService.toggle(groupId, loggedInUser);
   }
 
   @Auth('USER', 'ADMIN')
@@ -122,7 +128,7 @@ export class GroupController {
     @Req() request: Request,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.groupService.delete(groupId, loggedInUser.email);
+    return this.groupService.delete(groupId, loggedInUser);
   }
 
   @Auth('USER')

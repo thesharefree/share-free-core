@@ -36,10 +36,10 @@ export class MessageController {
   }
 
   @Auth('ADMIN')
-  @Put('/notifyNewGroup')
-  notifyNewGroup(
+  @Put('/notifyJoinGroup/:groupId')
+  notifyJoinGroup(
     @Req() request: Request,
-    @Query('groupId') groupId: string,
+    @Param('groupId') groupId: string,
   ): Promise<void> {
     return this.messageService.notifyJoinGroup(groupId);
   }

@@ -161,14 +161,18 @@ export class MessageService {
     if (group == null) {
       throw new HttpException('Invalid group', 400);
     }
-    const users = await this.userModel.find({ active: { $ne: true } });
     const owner = await this.userModel.findOne({ email: group.owner });
+    const xrefResp = await this.userGroupXrefModel.find({ groupId: group._id });
+    let userIds = xrefResp.map((xref) => {
+      return xref.userId;
+    });
+    userIds.push(owner._id.toString());
+    const users = await this.userModel.find({ _id: {$nin: userIds}, active: { $ne: true } });
     let userTokens = users.map((user) => user.registrationToken);
-    userTokens.splice(userTokens.indexOf(owner.registrationToken), 1);
     await this.notifyGeneral(
       groupId,
-      'New Group Announcement',
-      `Come join '${group.name}'`,
+      'Group Announcement',
+      `Come join this support group: '${group.name}'`,
       userTokens,
     );
   }

@@ -34,4 +34,13 @@ export class MessageController {
     const loggedInUser = request['user'];
     return this.messageService.lastRead(chatId, chatType, loggedInUser.email);
   }
+
+  @Auth('USER')
+  @Put('/notifyNewGroup')
+  notifyNewGroup(
+    @Req() request: Request,
+    @Query('groupId') groupId: string,
+  ): Promise<void> {
+    return this.messageService.notifyJoinGroup(groupId);
+  }
 }

@@ -156,6 +156,23 @@ export class MessageService {
     }
   }
 
+  public async notifyJoinGroup(groupId: string) {
+    const group = await this.groupModel.findById(groupId);
+    if (group == null) {
+      throw new HttpException('Invalid group', 400);
+    }
+    const users = await this.userModel.find({ active: { $ne: true } });
+    const owner = await this.userModel.findOne({ email: group.owner });
+    let userTokens = users.map((user) => user.registrationToken);
+    userTokens.splice(userTokens.indexOf(owner.registrationToken), 1);
+    await this.notifyGeneral(
+      groupId,
+      'New Group Announcement',
+      `Come join '${group.name}'`,
+      userTokens,
+    );
+  }
+
   public async notifyGeneral(
     groupId: string,
     title: string,

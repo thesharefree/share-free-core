@@ -163,12 +163,22 @@ export class MessageService {
     }
     const owner = await this.userModel.findOne({ email: group.owner });
     const xrefResp = await this.userGroupXrefModel.find({ groupId: group._id });
-    let userIds = xrefResp.map((xref) => {
+    let excludeUserIds = xrefResp.map((xref) => {
       return xref.userId;
     });
-    userIds.push(owner._id.toString());
-    const users = await this.userModel.find({ _id: {$nin: userIds}, active: { $ne: true } });
-    let userTokens = users.map((user) => user.registrationToken);
+    excludeUserIds.push(owner._id.toString());
+    console.log(excludeUserIds);
+    const users = await this.userModel.find({
+      active: { $ne: false },
+    });
+    let userTokens = users
+      .filter(
+        (user) =>
+          !excludeUserIds.includes(user._id.toString) &&
+          user.registrationToken != null,
+      )
+      .map((user) => user.registrationToken);
+    console.log(userTokens);
     await this.notifyGeneral(
       groupId,
       'Group Announcement',

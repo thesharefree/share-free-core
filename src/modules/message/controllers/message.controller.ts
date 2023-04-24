@@ -35,7 +35,7 @@ export class MessageController {
     return this.messageService.lastRead(chatId, chatType, loggedInUser.email);
   }
 
-  @Auth('USER')
+  @Auth('ADMIN')
   @Put('/notifyNewGroup')
   notifyNewGroup(
     @Req() request: Request,

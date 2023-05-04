@@ -196,7 +196,19 @@ export class MessageService {
       .map((user) => user.registrationToken);
     console.log(userTokens);
     console.log(title, message);
-    await this.notifyGeneral(undefined, `${title}`, `${message}`, userTokens);
+    var messagePayload: messaging.MulticastMessage = {
+      data: {
+        type: 'GENERAL',
+        title: title,
+        message: message,
+      },
+      tokens: userTokens,
+    };
+    try {
+      await defaultApp.messaging().sendMulticast(messagePayload);
+    } catch (ex) {
+      console.log(JSON.stringify(ex));
+    }
   }
 
   public async notifyGeneral(

@@ -187,6 +187,17 @@ export class MessageService {
     );
   }
 
+  public async generalAnnouncement(title: string, message: string) {
+    const users = await this.userModel.find({
+      active: { $ne: false },
+    });
+    let userTokens = users
+      .filter((user) => user.registrationToken != null)
+      .map((user) => user.registrationToken);
+    console.log(userTokens);
+    await this.notifyGeneral(null, `${title}`, `${message}`, userTokens);
+  }
+
   public async notifyGeneral(
     groupId: string,
     title: string,

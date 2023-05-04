@@ -43,4 +43,14 @@ export class MessageController {
   ): Promise<void> {
     return this.messageService.notifyJoinGroup(groupId);
   }
+
+  @Auth('ADMIN')
+  @Put('/generalAnnouncement')
+  generalAnnouncement(
+    @Req() request: Request,
+    @Query('title') title: string,
+    @Query('message') message: string,
+  ): Promise<void> {
+    return this.messageService.generalAnnouncement(title, message);
+  }
 }

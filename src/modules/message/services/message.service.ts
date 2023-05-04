@@ -195,7 +195,8 @@ export class MessageService {
       .filter((user) => user.registrationToken != null)
       .map((user) => user.registrationToken);
     console.log(userTokens);
-    await this.notifyGeneral(null, `${title}`, `${message}`, userTokens);
+    console.log(title, message);
+    await this.notifyGeneral(undefined, `${title}`, `${message}`, userTokens);
   }
 
   public async notifyGeneral(

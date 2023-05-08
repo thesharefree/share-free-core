@@ -194,18 +194,19 @@ export class MessageService {
     let userTokens = users
       .filter((user) => user.registrationToken != null)
       .map((user) => user.registrationToken);
-    console.log(userTokens);
     console.log(title, message);
-    var messagePayload: messaging.MulticastMessage = {
-      data: {
-        type: 'GENERAL',
-        title: title,
-        message: message,
-      },
-      tokens: userTokens,
-    };
     try {
-      await defaultApp.messaging().sendMulticast(messagePayload);
+      for (let batch of getBatch(userTokens)) {
+        var messagePayload: messaging.MulticastMessage = {
+          data: {
+            type: 'GENERAL',
+            title: title,
+            message: message,
+          },
+          tokens: batch,
+        };
+        await defaultApp.messaging().sendMulticast(messagePayload);
+      }
     } catch (ex) {
       console.log(JSON.stringify(ex));
     }
@@ -231,5 +232,11 @@ export class MessageService {
     } catch (ex) {
       console.log(JSON.stringify(ex));
     }
+  }
+}
+
+function* getBatch(tokens: string[], batchsize = 500) {
+  while (tokens.length) {
+    yield tokens.splice(0, batchsize);
   }
 }

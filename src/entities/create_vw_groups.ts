@@ -107,12 +107,12 @@ export class CreateGroupView {
           },
         },
         {
-            $addFields: {
-              houseId: {
-                $toString: '$houseId',
-              },
+          $addFields: {
+            houseId: {
+              $toString: '$houseId',
             },
           },
+        },
         {
           $lookup: {
             from: 'grouptopicxrefs',
@@ -140,6 +140,9 @@ export class CreateGroupView {
             foreignField: '_id',
             as: 'topics',
           },
+        },
+        {
+          $sort: { members: -1, stars: -1, reports: 1 },
         },
         {
           $unset: ['userXrefs', 'houses', 'topicXrefs'],

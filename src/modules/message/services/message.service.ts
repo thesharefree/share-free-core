@@ -218,17 +218,19 @@ export class MessageService {
     message: string,
     userTokens: string[],
   ) {
-    var messagePayload: messaging.MulticastMessage = {
-      data: {
-        type: 'GENERAL',
-        groupId: groupId,
-        title: title,
-        message: message,
-      },
-      tokens: userTokens,
-    };
     try {
-      await defaultApp.messaging().sendMulticast(messagePayload);
+      for (let batch of getBatch(userTokens)) {
+        var messagePayload: messaging.MulticastMessage = {
+          data: {
+            type: 'GENERAL',
+            groupId: groupId,
+            title: title,
+            message: message,
+          },
+          tokens: batch,
+        };
+        await defaultApp.messaging().sendMulticast(messagePayload);
+      }
     } catch (ex) {
       console.log(JSON.stringify(ex));
     }

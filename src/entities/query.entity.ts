@@ -5,6 +5,7 @@ import { Audit } from './audit';
 enum OptionsType {
   SINGLE = 'SINGLE',
   MULTI = 'MULTI',
+  NONE = ''
 }
 
 @Schema()

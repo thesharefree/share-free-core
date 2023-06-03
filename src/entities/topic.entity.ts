@@ -7,7 +7,7 @@ export class Topic extends Audit {
   @Prop({
     required: [true, 'Topic Name is required'],
     unique: true,
-    minlength: [6, 'Must be at least 6 characters'],
+    minlength: [4, 'Must be at least 4 characters'],
   })
   name: string;
 }

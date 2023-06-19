@@ -3,13 +3,13 @@ import { Document } from 'mongoose';
 import { Audit } from './audit';
 
 @Schema({ autoIndex: true })
-export class SFPostTopicXref extends Audit {
+export class PostTopicXref extends Audit {
   @Prop({ index: true })
-  sfpostId: string;
+  postId: string;
 
   @Prop()
   topicId: string;
 }
 
-export type SFPostTopicXrefDocument = SFPostTopicXref & Document;
-export const SFPostTopicXrefSchema = SchemaFactory.createForClass(SFPostTopicXref);
+export type PostTopicXrefDocument = PostTopicXref & Document;
+export const PostTopicXrefSchema = SchemaFactory.createForClass(PostTopicXref);

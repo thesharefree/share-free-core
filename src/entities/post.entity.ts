@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { Location } from './location';
 import { Topic } from './topic.entity';
+import { User } from './user.entity';
 
 @Schema()
 export class SFPost extends Location {
@@ -16,7 +17,9 @@ export class SFPost extends Location {
   topicIds: string;
 
   supports: number;
+
+  postedBy: User;
 }
 
-export type SFPostDocument = SFPost & Document;
-export const SFPostSchema = SchemaFactory.createForClass(SFPost);
+export type PostDocument = SFPost & Document;
+export const PostSchema = SchemaFactory.createForClass(SFPost);

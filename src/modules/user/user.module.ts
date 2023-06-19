@@ -38,7 +38,15 @@ import {
   GroupTopicXref,
   GroupTopicXrefSchema,
 } from 'src/entities/group-topic-xref.entity';
-import { UserGroupInviteXref, UserGroupInviteXrefSchema } from 'src/entities/user-group-invite-xref.entity';
+import {
+  UserGroupInviteXref,
+  UserGroupInviteXrefSchema,
+} from 'src/entities/user-group-invite-xref.entity';
+import { SFPost, PostSchema } from 'src/entities/post.entity';
+import {
+  UserPostActions,
+  UserPostActionsSchema,
+} from 'src/entities/user-post-actions.entity';
 
 @Module({
   imports: [
@@ -52,7 +60,13 @@ import { UserGroupInviteXref, UserGroupInviteXrefSchema } from 'src/entities/use
     MongooseModule.forFeature([{ name: Query.name, schema: QuerySchema }]),
     MongooseModule.forFeature([{ name: House.name, schema: HouseSchema }]),
     MongooseModule.forFeature([{ name: Group.name, schema: GroupSchema }]),
-    MongooseModule.forFeature([{ name: GroupView.name, schema: GroupViewSchema }]),
+    MongooseModule.forFeature([{ name: SFPost.name, schema: PostSchema }]),
+    MongooseModule.forFeature([
+      { name: UserPostActions.name, schema: UserPostActionsSchema },
+    ]),
+    MongooseModule.forFeature([
+      { name: GroupView.name, schema: GroupViewSchema },
+    ]),
     MongooseModule.forFeature([
       { name: TopicQueryXref.name, schema: TopicQueryXrefSchema },
     ]),

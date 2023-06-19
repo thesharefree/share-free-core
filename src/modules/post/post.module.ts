@@ -1,20 +1,20 @@
 import { AzureStorageModule } from '@nestjs/azure-storage';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { SFPost, SFPostSchema } from 'src/entities/sfpost.entity';
+import { SFPost, PostSchema } from 'src/entities/post.entity';
 import { User, UserSchema } from 'src/entities/user.entity';
 import { MessageModule } from '../message/message.module';
 import { PostController } from './controllers/post.controller';
 import { PostService } from './services/post.service';
 import {
-  UserSFPostActions,
-  UserSFPostActionsSchema,
-} from 'src/entities/user-sfpost-actions.entity';
+  UserPostActions,
+  UserPostActionsSchema,
+} from 'src/entities/user-post-actions.entity';
 import { Topic, TopicSchema } from 'src/entities/topic.entity';
 import {
-  SFPostTopicXref,
-  SFPostTopicXrefSchema,
-} from 'src/entities/sfpost-topic-xref.entity';
+  PostTopicXref,
+  PostTopicXrefSchema,
+} from 'src/entities/post-topic-xref.entity';
 
 @Module({
   imports: [
@@ -24,13 +24,13 @@ import {
       containerName: process.env['AZURE_STORAGE_CONTAINER'],
     }),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-    MongooseModule.forFeature([{ name: SFPost.name, schema: SFPostSchema }]),
+    MongooseModule.forFeature([{ name: SFPost.name, schema: PostSchema }]),
     MongooseModule.forFeature([{ name: Topic.name, schema: TopicSchema }]),
     MongooseModule.forFeature([
-      { name: SFPostTopicXref.name, schema: SFPostTopicXrefSchema },
+      { name: PostTopicXref.name, schema: PostTopicXrefSchema },
     ]),
     MongooseModule.forFeature([
-      { name: UserSFPostActions.name, schema: UserSFPostActionsSchema },
+      { name: UserPostActions.name, schema: UserPostActionsSchema },
     ]),
     MessageModule,
   ],

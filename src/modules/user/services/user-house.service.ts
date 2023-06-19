@@ -1,25 +1,61 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Group, GroupDocument } from 'src/entities/group.entity';
 import { House, HouseDocument } from 'src/entities/house.entity';
 
 @Injectable()
 export class UserHouseService {
   constructor(
     @InjectModel(House.name) private readonly houseModel: Model<HouseDocument>,
-    @InjectModel(Group.name) private readonly groupModel: Model<GroupDocument>,
   ) {}
 
   public async getUserHouses(loggedInUser: string): Promise<House[]> {
-    const houses = await this.houseModel.find({ owner: loggedInUser }).lean();
-    const liveHouses = houses.filter((house) => !house.deleted);
-    for (const house of liveHouses) {
-      const groups = await this.groupModel
-        .find({ houseId: house._id.toString(), deleted: { $ne: true } })
-        .count();
-      house.groups = groups;
-    }
-    return liveHouses;
+    const houses = await this.houseModel.aggregate([
+      {
+        $match: {
+          deleted: {
+            $ne: true,
+          },
+        },
+      },
+      {
+        $addFields: {
+          houseId: {
+            $toString: '$_id',
+          },
+        },
+      },
+      {
+        $match: {
+          owner: loggedInUser,
+        },
+      },
+      {
+        $lookup: {
+          from: 'groups',
+          localField: 'houseId',
+          foreignField: 'houseId',
+          as: 'houseGroups',
+        },
+      },
+      {
+        $addFields: {
+          groups: {
+            $size: {
+              $filter: {
+                input: '$houseGroups',
+                cond: {
+                  $eq: ['$$this.deleted', false],
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $unset: ['houseGroups'],
+      },
+    ]);
+    return houses;
   }
 }

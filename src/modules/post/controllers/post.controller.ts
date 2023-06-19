@@ -11,27 +11,27 @@ import {
 } from '@nestjs/common';
 import { Auth } from 'src/decorators/auth.decorator';
 import { PostService } from '../services/post.service';
-import { SFPost } from 'src/entities/sfpost.entity';
+import { SFPost } from 'src/entities/post.entity';
 import { Request } from 'express';
 
 @Controller('/posts')
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
-  @Auth('ADMIN')
+  @Auth('USER', 'ADMIN')
   @Get('/all')
-  getAllPost(): Promise<SFPost[]> {
-    return this.postService.getAllSFPosts();
+  getAllPost(@Query('topicIds') topicIds: string): Promise<SFPost[]> {
+    return this.postService.getAllPosts(topicIds);
   }
 
-  @Auth('USER', 'ADMIN')
+  @Auth('USER')
   @Post('/create')
   createPost(@Req() request: Request, @Body() post: SFPost): Promise<SFPost> {
     const loggedInUser = request['user'];
-    return this.postService.createSFPost(post, loggedInUser.email);
+    return this.postService.createPost(post, loggedInUser.email);
   }
 
-  @Auth('USER', 'ADMIN')
+  @Auth('USER')
   @Put('/update/:postId')
   updatePost(
     @Param('postId') postId: string,
@@ -40,12 +40,6 @@ export class PostController {
   ): Promise<void> {
     const loggedInUser = request['user'];
     return this.postService.updatePost(postId, post, loggedInUser);
-  }
-
-  @Auth('USER', 'ADMIN')
-  @Get('/:postId')
-  getPost(@Param('postId') postId: string): Promise<SFPost> {
-    return this.postService.getSFPost(postId);
   }
 
   @Auth('USER', 'ADMIN')
@@ -58,7 +52,7 @@ export class PostController {
     return this.postService.delete(postId, loggedInUser);
   }
 
-  @Auth('USER', 'ADMIN')
+  @Auth('USER')
   @Put('/support/:postId')
   togglePost(
     @Param('postId') postId: string,

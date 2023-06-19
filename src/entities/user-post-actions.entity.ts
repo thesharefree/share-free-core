@@ -3,12 +3,12 @@ import { Document } from 'mongoose';
 import { Audit } from './audit';
 
 @Schema({ autoIndex: true })
-export class UserSFPostActions extends Audit {
+export class UserPostActions extends Audit {
   @Prop()
   userId: string;
 
   @Prop({ index: true })
-  sfpostId: string;
+  postId: string;
 
   @Prop()
   supported: boolean;
@@ -20,5 +20,5 @@ export class UserSFPostActions extends Audit {
   reportCategory: string;
 }
 
-export type UserSFPostActionsDocument = UserSFPostActions & Document;
-export const UserSFPostActionsSchema = SchemaFactory.createForClass(UserSFPostActions);
+export type UserPostActionsDocument = UserPostActions & Document;
+export const UserPostActionsSchema = SchemaFactory.createForClass(UserPostActions);

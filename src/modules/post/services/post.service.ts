@@ -2,59 +2,112 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
-  SFPostTopicXref,
-  SFPostTopicXrefDocument,
-} from 'src/entities/sfpost-topic-xref.entity';
-import { SFPost, SFPostDocument } from 'src/entities/sfpost.entity';
+  PostTopicXref,
+  PostTopicXrefDocument,
+} from 'src/entities/post-topic-xref.entity';
+import { SFPost, PostDocument } from 'src/entities/post.entity';
 import { Topic, TopicDocument } from 'src/entities/topic.entity';
 import { Role, User, UserDocument } from 'src/entities/user.entity';
-import { UserSFPostActions, UserSFPostActionsDocument } from 'src/entities/user-sfpost-actions.entity';
+import { UserPostActions, UserPostActionsDocument } from 'src/entities/user-post-actions.entity';
 
 @Injectable()
 export class PostService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
-    @InjectModel(SFPost.name) private readonly sfpostModel: Model<SFPostDocument>,
+    @InjectModel(SFPost.name) private readonly postModel: Model<PostDocument>,
     @InjectModel(Topic.name) private readonly topicModel: Model<TopicDocument>,
-    @InjectModel(SFPostTopicXref.name)
-    private readonly sfpostTopicXrefModel: Model<SFPostTopicXrefDocument>,
-    @InjectModel(UserSFPostActions.name)
-    private readonly userSFPostActionsModel: Model<UserSFPostActionsDocument>,
+    @InjectModel(PostTopicXref.name)
+    private readonly postTopicXrefModel: Model<PostTopicXrefDocument>,
+    @InjectModel(UserPostActions.name)
+    private readonly userPostActionsModel: Model<UserPostActionsDocument>,
   ) {}
 
-  public async getAllSFPosts(): Promise<SFPost[]> {
-    return await this.sfpostModel.find();
+  public async getAllPosts(topicIds: string): Promise<SFPost[]> {
+    return await this.postModel.aggregate([
+      {
+        $match: {
+          deleted: {
+            $ne: true,
+          },
+        },
+      },
+      {
+        $addFields: {
+          postId: {
+            $toString: '$_id',
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'createdBy',
+          foreignField: 'email',
+          as: 'postedBy',
+        }
+      },
+      {
+        $lookup: {
+          from: 'posttopicxrefs',
+          localField: 'postId',
+          foreignField: 'postId',
+          as: 'topicXrefs',
+        },
+      },
+      {
+        $addFields: {
+          topicIds: {
+            $map: {
+              input: '$topicXrefs',
+              in: {
+                $toObjectId: '$$this.topicId',
+              },
+            },
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: 'topics',
+          localField: 'topicIds',
+          foreignField: '_id',
+          as: 'topics',
+        },
+      },
+      {
+        $match: {
+          topicIds: {
+            $in: topicIds
+          }
+        }
+      },
+      {
+        $sort: { supports: -1 },
+      },
+      {
+        $unset: ['userActions', 'topicXrefs'],
+      },
+    ]);
   }
 
-  public async getSFPost(sfpostId: string): Promise<SFPost> {
-    const sfpost = await this.sfpostModel.findById(sfpostId);
-    if (sfpost == null) {
-      throw new HttpException('Invalid Post', 400);
-    }
-    if (sfpost.deleted) {
-      throw new HttpException('Post has been deleted', 400);
-    }
-    return sfpost;
-  }
-
-  public async createSFPost(
-    sfpost: SFPost,
+  public async createPost(
+    post: SFPost,
     loggedInUser: string,
   ): Promise<SFPost> {
-    sfpost['_id'] = null;
-    sfpost.active = true;
-    sfpost.createdBy = loggedInUser;
-    sfpost.createdDate = new Date();
-    sfpost.updatedBy = loggedInUser;
-    sfpost.updatedDate = new Date();
-    const createdSFPost = new this.sfpostModel(sfpost);
-    const newSFPost = await createdSFPost.save();
-    await this.updatePostTopics(newSFPost._id.toString(), sfpost.topicIds, loggedInUser);
-    return newSFPost;
+    post['_id'] = null;
+    post.active = true;
+    post.createdBy = loggedInUser;
+    post.createdDate = new Date();
+    post.updatedBy = loggedInUser;
+    post.updatedDate = new Date();
+    const createdPost = new this.postModel(post);
+    const newPost = await createdPost.save();
+    await this.updatePostTopics(newPost._id.toString(), post.topicIds, loggedInUser);
+    return newPost;
   }
 
   private async updatePostTopics(
-    sfpostId: string,
+    postId: string,
     topicIds: string,
     loggedInUser: string,
   ): Promise<void> {
@@ -62,31 +115,31 @@ export class PostService {
       .find()
       .where('_id')
       .in(topicIds.split(','));
-    await this.sfpostTopicXrefModel.deleteMany({ sfpostId: sfpostId });
+    await this.postTopicXrefModel.deleteMany({ postId: postId });
     for (const topic of topics) {
-      const xrefResp = await this.sfpostTopicXrefModel.findOne({
-        sfpostId: sfpostId.toString(),
+      const xrefResp = await this.postTopicXrefModel.findOne({
+        postId: postId.toString(),
         topicId: topic._id.toString(),
       });
       if (xrefResp == null) {
         const xref = this.newPostTopicXref(
-          sfpostId.toString(),
+          postId.toString(),
           topic._id.toString(),
           loggedInUser,
         );
-        const createdSFPostTopicXref = new this.sfpostTopicXrefModel(xref);
-        await createdSFPostTopicXref.save();
+        const createdPostTopicXref = new this.postTopicXrefModel(xref);
+        await createdPostTopicXref.save();
       }
     }
   }
 
   private async newPostTopicXref(
-    sfpostId: string,
+    postId: string,
     topicId: string,
     loggedInUser: string,
-  ): Promise<SFPostTopicXref> {
-    const xref = new SFPostTopicXref();
-    xref.sfpostId = sfpostId;
+  ): Promise<PostTopicXref> {
+    const xref = new PostTopicXref();
+    xref.postId = postId;
     xref.topicId = topicId;
     xref.active = true;
     xref.createdBy = loggedInUser;
@@ -97,48 +150,48 @@ export class PostService {
   }
 
   public async updatePost(
-    sfpostId: string,
-    sfpost: SFPost,
+    postId: string,
+    post: SFPost,
     loggedInUser: string,
   ): Promise<void> {
-    const extSFPost = await this.sfpostModel.findById(sfpostId);
-    if (extSFPost == null) {
+    const extPost = await this.postModel.findById(postId);
+    if (extPost == null) {
       throw new HttpException('Invalid Post', 400);
     }
-    if (extSFPost.createdBy !== loggedInUser) {
+    if (extPost.createdBy !== loggedInUser) {
       throw new HttpException("You don't own this Post", 400);
     }
-    await this.sfpostModel.updateOne(
-      { _id: sfpostId },
+    await this.postModel.updateOne(
+      { _id: postId },
       {
-        name: sfpost.content,
-        latitude: sfpost.latitude,
-        longitude: sfpost.longitude,
-        city: sfpost.city,
-        province: sfpost.province,
-        country: sfpost.country,
+        name: post.content,
+        latitude: post.latitude,
+        longitude: post.longitude,
+        city: post.city,
+        province: post.province,
+        country: post.country,
         updatedBy: loggedInUser,
         updatedDate: new Date(),
       },
     );
-    await this.updatePostTopics(sfpostId, sfpost.topicIds, loggedInUser);
+    await this.updatePostTopics(postId, post.topicIds, loggedInUser);
   }
 
-  public async delete(sfpostId: string, loggedInUser: User): Promise<void> {
-    const extSFPost = await this.sfpostModel.findById(sfpostId);
-    if (extSFPost == null) {
+  public async delete(postId: string, loggedInUser: User): Promise<void> {
+    const extPost = await this.postModel.findById(postId);
+    if (extPost == null) {
       throw new HttpException('Invalid Post', 400);
     }
     if (
-      extSFPost.createdBy !== loggedInUser.email &&
+      extPost.createdBy !== loggedInUser.email &&
       !loggedInUser.roles.includes(Role.ADMIN)
     ) {
       throw new HttpException("You don't own this Post", 400);
     }
-    await this.sfpostModel.updateOne(
-      { _id: sfpostId },
+    await this.postModel.updateOne(
+      { _id: postId },
       {
-        deleted: !extSFPost.deleted,
+        deleted: !extPost.deleted,
         updatedBy: loggedInUser.email,
         updatedDate: new Date(),
       },
@@ -146,36 +199,36 @@ export class PostService {
   }
 
   public async toggleSupport(
-    sfpostId: string,
+    postId: string,
     loggedInUser: string,
   ): Promise<void> {
     const user = await this.userModel.findOne({ email: loggedInUser });
-    const extPost = await this.sfpostModel.findById(sfpostId);
+    const extPost = await this.postModel.findById(postId);
     if (extPost == null) {
       throw new HttpException('Invalid Post', 400);
     }
-    var userPostActions = await this.userSFPostActionsModel.findOne({
+    var userPostActions = await this.userPostActionsModel.findOne({
       userId: user._id,
-      sfpostId: sfpostId,
+      postId: postId,
     });
     if (userPostActions == null) {
-      var newUserSFPostActions = new UserSFPostActions();
-      newUserSFPostActions.userId = user._id;
-      newUserSFPostActions.sfpostId = sfpostId;
-      newUserSFPostActions.supported = true;
-      newUserSFPostActions.reported = false;
-      newUserSFPostActions.active = true;
-      newUserSFPostActions.createdBy = loggedInUser;
-      newUserSFPostActions.createdDate = new Date();
-      newUserSFPostActions.updatedBy = loggedInUser;
-      newUserSFPostActions.updatedDate = new Date();
-      const createdUserPostActions = new this.userSFPostActionsModel(
-        newUserSFPostActions,
+      var newUserPostActions = new UserPostActions();
+      newUserPostActions.userId = user._id;
+      newUserPostActions.postId = postId;
+      newUserPostActions.supported = true;
+      newUserPostActions.reported = false;
+      newUserPostActions.active = true;
+      newUserPostActions.createdBy = loggedInUser;
+      newUserPostActions.createdDate = new Date();
+      newUserPostActions.updatedBy = loggedInUser;
+      newUserPostActions.updatedDate = new Date();
+      const createdUserPostActions = new this.userPostActionsModel(
+        newUserPostActions,
       );
       await createdUserPostActions.save();
       return;
     } else {
-      await this.userSFPostActionsModel.updateOne(
+      await this.userPostActionsModel.updateOne(
         { _id: userPostActions._id },
         {
           supported: !userPostActions.supported,
@@ -187,41 +240,41 @@ export class PostService {
   }
 
   public async toggleReport(
-    sfpostId: string,
+    postId: string,
     category: string,
     loggedInUser: string,
   ): Promise<void> {
     const user = await this.userModel.findOne({ email: loggedInUser });
-    const extSFPost = await this.sfpostModel.findById(sfpostId);
-    if (extSFPost == null) {
+    const extPost = await this.postModel.findById(postId);
+    if (extPost == null) {
       throw new HttpException('Invalid Post', 400);
     }
-    var userSFPostActions = await this.userSFPostActionsModel.findOne({
+    var userPostActions = await this.userPostActionsModel.findOne({
       userId: user._id,
-      sfpostId: sfpostId,
+      postId: postId,
     });
-    if (userSFPostActions == null) {
-      var newUserSFPostActions = new UserSFPostActions();
-      newUserSFPostActions.userId = user._id;
-      newUserSFPostActions.sfpostId = sfpostId;
-      newUserSFPostActions.supported = false;
-      newUserSFPostActions.reported = true;
-      newUserSFPostActions.reportCategory = category;
-      newUserSFPostActions.active = true;
-      newUserSFPostActions.createdBy = loggedInUser;
-      newUserSFPostActions.createdDate = new Date();
-      newUserSFPostActions.updatedBy = loggedInUser;
-      newUserSFPostActions.updatedDate = new Date();
-      const createdUserPostActions = new this.userSFPostActionsModel(
-        newUserSFPostActions,
+    if (userPostActions == null) {
+      var newUserPostActions = new UserPostActions();
+      newUserPostActions.userId = user._id;
+      newUserPostActions.postId = postId;
+      newUserPostActions.supported = false;
+      newUserPostActions.reported = true;
+      newUserPostActions.reportCategory = category;
+      newUserPostActions.active = true;
+      newUserPostActions.createdBy = loggedInUser;
+      newUserPostActions.createdDate = new Date();
+      newUserPostActions.updatedBy = loggedInUser;
+      newUserPostActions.updatedDate = new Date();
+      const createdUserPostActions = new this.userPostActionsModel(
+        newUserPostActions,
       );
       await createdUserPostActions.save();
       return;
     } else {
-      await this.userSFPostActionsModel.updateOne(
-        { _id: userSFPostActions._id },
+      await this.userPostActionsModel.updateOne(
+        { _id: userPostActions._id },
         {
-          reported: !userSFPostActions.reported,
+          reported: !userPostActions.reported,
           reportCategory: category,
           updatedBy: loggedInUser,
           updatedDate: new Date(),

@@ -13,6 +13,7 @@ import { GroupModule } from './modules/group/group.module';
 import { HomeModule } from './modules/home/home.module';
 import { HouseModule } from './modules/house/house.module';
 import { UserModule } from './modules/user/user.module';
+import { PostModule } from './modules/post/post.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { UserModule } from './modules/user/user.module';
     UserModule,
     GroupModule,
     HouseModule,
+    PostModule,
   ],
   controllers: [],
   providers: [],

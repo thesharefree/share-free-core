@@ -22,24 +22,29 @@ export class UserTopicService {
     loggedInUser: string,
   ): Promise<void> {
     const user = await this.userModel.findOne({ email: loggedInUser });
-    await this.userTopicXrefModel.deleteMany({ userId: user._id });
     if (topicIds.split(',').length > 5) {
       throw new HttpException('Please select a maximum of 5 topics', 400);
     }
     var isTopics = false;
-    for (const topicId of topicIds.split(',')) {
-      const topic = await this.topicModel.findById(topicId);
-      if (topic != null) {
-        isTopics = true;
-        const xrefResp = await this.userTopicXrefModel.findOne({
-          userId: user._id,
-          topicId: topicId,
-        });
-        if (xrefResp == null) {
-          const xref = this.newUserTopicXref(user._id, topicId, loggedInUser);
-          const createdUserTopicXref = new this.userTopicXrefModel(xref);
-          await createdUserTopicXref.save();
-        }
+    const topics = await this.topicModel
+      .find()
+      .where('_id')
+      .in(topicIds.split(','));
+    await this.userTopicXrefModel.deleteMany({ userId: user._id });
+    for (const topic of topics) {
+      isTopics = true;
+      const xrefResp = await this.userTopicXrefModel.findOne({
+        userId: user._id,
+        topicId: topic._id.toString(),
+      });
+      if (xrefResp == null) {
+        const xref = this.newUserTopicXref(
+          user._id,
+          topic._id.toString(),
+          loggedInUser,
+        );
+        const createdUserTopicXref = new this.userTopicXrefModel(xref);
+        await createdUserTopicXref.save();
       }
     }
     if (isTopics) {

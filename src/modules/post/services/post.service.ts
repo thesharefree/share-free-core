@@ -77,7 +77,7 @@ export class PostService {
       {
         $match: {
           topicIds: {
-            $in: topicIds
+            $in: topicIds.split(",")
           }
         }
       },

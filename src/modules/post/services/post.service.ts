@@ -27,16 +27,19 @@ export class PostService {
     private readonly userTopicService: UserTopicService,
   ) {}
 
-  public async getAllPosts(topicIds: string, loggedInUser: string): Promise<SFPost[]> {
-    // const topics = await this.topicModel
-    //   .find()
-    //   .where('_id')
-    //   .in(topicIds.split(','));
-    // console.log(
-    //   'topics',
-    //   topics.map((t) => t._id),
-    // );
-    const topics = await this.userTopicService.getUserTopics(loggedInUser);
+  public async getAllPosts(
+    topicIds: string,
+    loggedInUser: string,
+  ): Promise<SFPost[]> {
+    let topics = [];
+    if (topicIds == null || topicIds.trim() === '') {
+      topics = await this.userTopicService.getUserTopics(loggedInUser);
+    } else {
+      topics = await this.topicModel
+        .find()
+        .where('_id')
+        .in(topicIds.split(','));
+    }
     return await this.postModel.aggregate([
       {
         $match: {

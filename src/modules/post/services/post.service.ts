@@ -30,6 +30,10 @@ export class PostService {
       .find()
       .where('_id')
       .in(topicIds.split(','));
+    console.log(
+      'topics',
+      topics.map((t) => t._id),
+    );
     return await this.postModel.aggregate([
       {
         $match: {
@@ -91,7 +95,7 @@ export class PostService {
       {
         $match: {
           topicIds: {
-            $in: topics.map(t => t._id),
+            $in: topics.map((t) => t._id),
           },
         },
       },
@@ -126,12 +130,10 @@ export class PostService {
     topicIds: string,
     loggedInUser: string,
   ): Promise<void> {
-    console.log('topicIds', topicIds);
     const topics = await this.topicModel
       .find()
       .where('_id')
       .in(topicIds.split(','));
-    console.log('topics', topics);
     await this.postTopicXrefModel.deleteMany({ postId: postId });
     for (const topic of topics) {
       const xref = new PostTopicXref();

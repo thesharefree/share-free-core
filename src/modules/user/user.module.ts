@@ -107,5 +107,8 @@ import { UserPostService } from './services/user-post.service';
     UserHouseService,
     UserPostService,
   ],
+  exports: [
+    UserTopicService
+  ]
 })
 export class UserModule {}

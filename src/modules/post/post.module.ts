@@ -15,6 +15,7 @@ import {
   PostTopicXref,
   PostTopicXrefSchema,
 } from 'src/entities/post-topic-xref.entity';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import {
       { name: UserPostActions.name, schema: UserPostActionsSchema },
     ]),
     MessageModule,
+    UserModule,
   ],
   controllers: [PostController],
   providers: [PostService],

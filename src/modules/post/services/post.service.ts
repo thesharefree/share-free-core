@@ -12,6 +12,7 @@ import {
   UserPostActions,
   UserPostActionsDocument,
 } from 'src/entities/user-post-actions.entity';
+import { UserTopicService } from 'src/modules/user/services/user-topic.service';
 
 @Injectable()
 export class PostService {
@@ -23,17 +24,19 @@ export class PostService {
     private readonly postTopicXrefModel: Model<PostTopicXrefDocument>,
     @InjectModel(UserPostActions.name)
     private readonly userPostActionsModel: Model<UserPostActionsDocument>,
+    private readonly userTopicService: UserTopicService,
   ) {}
 
-  public async getAllPosts(topicIds: string): Promise<SFPost[]> {
-    const topics = await this.topicModel
-      .find()
-      .where('_id')
-      .in(topicIds.split(','));
-    console.log(
-      'topics',
-      topics.map((t) => t._id),
-    );
+  public async getAllPosts(topicIds: string, loggedInUser: string): Promise<SFPost[]> {
+    // const topics = await this.topicModel
+    //   .find()
+    //   .where('_id')
+    //   .in(topicIds.split(','));
+    // console.log(
+    //   'topics',
+    //   topics.map((t) => t._id),
+    // );
+    const topics = await this.userTopicService.getUserTopics(loggedInUser);
     return await this.postModel.aggregate([
       {
         $match: {
@@ -95,7 +98,7 @@ export class PostService {
       {
         $match: {
           topicIds: {
-            $in: topics.map((t) => t._id),
+            $in: topics.map((t) => t['_id']),
           },
         },
       },

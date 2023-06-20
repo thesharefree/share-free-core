@@ -20,8 +20,9 @@ export class PostController {
 
   @Auth('USER', 'ADMIN')
   @Get('/all')
-  getAllPost(@Query('topicIds') topicIds: string): Promise<SFPost[]> {
-    return this.postService.getAllPosts(topicIds);
+  getAllPost(@Req() request: Request, @Query('topicIds') topicIds: string): Promise<SFPost[]> {
+    const loggedInUser = request['user'];
+    return this.postService.getAllPosts(topicIds, loggedInUser.email);
   }
 
   @Auth('USER')

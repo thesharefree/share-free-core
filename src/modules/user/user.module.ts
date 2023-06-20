@@ -47,6 +47,8 @@ import {
   UserPostActions,
   UserPostActionsSchema,
 } from 'src/entities/user-post-actions.entity';
+import { UserPostController } from './controllers/user-post.controller';
+import { UserPostService } from './services/user-post.service';
 
 @Module({
   imports: [
@@ -95,6 +97,7 @@ import {
     UserAnswerController,
     UserGroupController,
     UserHouseController,
+    UserPostController,
   ],
   providers: [
     UserService,
@@ -102,6 +105,7 @@ import {
     UserAnswerService,
     UserGroupService,
     UserHouseService,
+    UserPostService,
   ],
 })
 export class UserModule {}

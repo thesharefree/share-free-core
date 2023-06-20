@@ -35,8 +35,15 @@ export class UserPostService {
           from: 'users',
           localField: 'createdBy',
           foreignField: 'email',
-          as: 'postedBy',
+          as: 'posters',
         }
+      },
+      {
+        $addFields: {
+          postedBy: {
+            $first: '$posters',
+          },
+        },
       },
       {
         $lookup: {
@@ -92,7 +99,7 @@ export class UserPostService {
         $sort: { supports: -1 },
       },
       {
-        $unset: ['userActions', 'topicXrefs'],
+        $unset: ['posters', 'userActions', 'topicXrefs'],
       },
     ]);
     return posts;

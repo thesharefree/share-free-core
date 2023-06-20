@@ -87,7 +87,9 @@ export class PostService {
       {
         $match: {
           topicIds: {
-            $in: topicIds.split(','),
+            $in: topicIds.split(',').map((tid) => {
+              $toObjectId: tid;
+            }),
           },
         },
       },

@@ -1,6 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import {
   PostTopicXref,
   PostTopicXrefDocument,
@@ -94,7 +94,7 @@ export class PostService {
     post: SFPost,
     loggedInUser: string,
   ): Promise<SFPost> {
-    post['_id'] = null;
+    post['_id'] = new mongoose.Types.ObjectId();
     post.active = true;
     post.createdBy = loggedInUser;
     post.createdDate = new Date();

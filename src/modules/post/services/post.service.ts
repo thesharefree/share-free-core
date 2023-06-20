@@ -26,6 +26,10 @@ export class PostService {
   ) {}
 
   public async getAllPosts(topicIds: string): Promise<SFPost[]> {
+    const topics = await this.topicModel
+      .find()
+      .where('_id')
+      .in(topicIds.split(','));
     return await this.postModel.aggregate([
       {
         $match: {
@@ -87,9 +91,7 @@ export class PostService {
       {
         $match: {
           topicIds: {
-            $in: topicIds.split(',').map((tid) => {
-              $toObjectId: tid;
-            }),
+            $in: topics.map(t => t._id),
           },
         },
       },

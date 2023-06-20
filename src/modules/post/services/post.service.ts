@@ -8,7 +8,10 @@ import {
 import { SFPost, PostDocument } from 'src/entities/post.entity';
 import { Topic, TopicDocument } from 'src/entities/topic.entity';
 import { Role, User, UserDocument } from 'src/entities/user.entity';
-import { UserPostActions, UserPostActionsDocument } from 'src/entities/user-post-actions.entity';
+import {
+  UserPostActions,
+  UserPostActionsDocument,
+} from 'src/entities/user-post-actions.entity';
 
 @Injectable()
 export class PostService {
@@ -44,7 +47,7 @@ export class PostService {
           localField: 'createdBy',
           foreignField: 'email',
           as: 'postedBy',
-        }
+        },
       },
       {
         $lookup: {
@@ -77,9 +80,9 @@ export class PostService {
       {
         $match: {
           topicIds: {
-            $in: topicIds.split(",")
-          }
-        }
+            $in: topicIds.split(','),
+          },
+        },
       },
       {
         $sort: { supports: -1 },
@@ -90,10 +93,7 @@ export class PostService {
     ]);
   }
 
-  public async createPost(
-    post: SFPost,
-    loggedInUser: string,
-  ): Promise<SFPost> {
+  public async createPost(post: SFPost, loggedInUser: string): Promise<SFPost> {
     post['_id'] = new mongoose.Types.ObjectId();
     post.active = true;
     post.createdBy = loggedInUser;
@@ -102,7 +102,11 @@ export class PostService {
     post.updatedDate = new Date();
     const createdPost = new this.postModel(post);
     const newPost = await createdPost.save();
-    await this.updatePostTopics(newPost._id.toString(), post.topicIds, loggedInUser);
+    await this.updatePostTopics(
+      newPost._id.toString(),
+      post.topicIds,
+      loggedInUser,
+    );
     return newPost;
   }
 
@@ -111,42 +115,25 @@ export class PostService {
     topicIds: string,
     loggedInUser: string,
   ): Promise<void> {
+    console.log('topicIds', topicIds);
     const topics = await this.topicModel
       .find()
       .where('_id')
       .in(topicIds.split(','));
+    console.log('topics', topics);
     await this.postTopicXrefModel.deleteMany({ postId: postId });
     for (const topic of topics) {
-      const xrefResp = await this.postTopicXrefModel.findOne({
-        postId: postId.toString(),
-        topicId: topic._id.toString(),
-      });
-      if (xrefResp == null) {
-        const xref = this.newPostTopicXref(
-          postId.toString(),
-          topic._id.toString(),
-          loggedInUser,
-        );
-        const createdPostTopicXref = new this.postTopicXrefModel(xref);
-        await createdPostTopicXref.save();
-      }
+      const xref = new PostTopicXref();
+      xref.postId = postId;
+      xref.topicId = topic._id.toString();
+      xref.active = true;
+      xref.createdBy = loggedInUser;
+      xref.createdDate = new Date();
+      xref.updatedBy = loggedInUser;
+      xref.updatedDate = new Date();
+      const createdPostTopicXref = new this.postTopicXrefModel(xref);
+      await createdPostTopicXref.save();
     }
-  }
-
-  private async newPostTopicXref(
-    postId: string,
-    topicId: string,
-    loggedInUser: string,
-  ): Promise<PostTopicXref> {
-    const xref = new PostTopicXref();
-    xref.postId = postId;
-    xref.topicId = topicId;
-    xref.active = true;
-    xref.createdBy = loggedInUser;
-    xref.createdDate = new Date();
-    xref.updatedBy = loggedInUser;
-    xref.updatedDate = new Date();
-    return xref;
   }
 
   public async updatePost(

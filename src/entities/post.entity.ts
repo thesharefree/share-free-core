@@ -3,6 +3,7 @@ import { Document } from 'mongoose';
 import { Location } from './location';
 import { Topic } from './topic.entity';
 import { User } from './user.entity';
+import { UserPostActions } from './user-post-actions.entity';
 
 @Schema()
 export class SFPost extends Location {
@@ -19,6 +20,8 @@ export class SFPost extends Location {
   supports: number;
 
   postedBy: User;
+
+  myActions: UserPostActions[];
 }
 
 export type PostDocument = SFPost & Document;

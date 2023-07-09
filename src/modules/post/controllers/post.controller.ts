@@ -40,7 +40,7 @@ export class PostController {
     @Body() post: SFPost,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.postService.updatePost(postId, post, loggedInUser);
+    return this.postService.updatePost(postId, post, loggedInUser.email);
   }
 
   @Auth('USER', 'ADMIN')
@@ -55,12 +55,12 @@ export class PostController {
 
   @Auth('USER')
   @Put('/support/:postId')
-  togglePost(
+  supportPost(
     @Param('postId') postId: string,
     @Req() request: Request,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.postService.toggleSupport(postId, loggedInUser);
+    return this.postService.toggleSupport(postId, loggedInUser.email);
   }
 
   @Auth('USER')

@@ -31,6 +31,7 @@ export class PostService {
     topicIds: string,
     loggedInUser: string,
   ): Promise<SFPost[]> {
+    const user = await this.userModel.findOne({ email: loggedInUser });
     let topics = [];
     if (topicIds == null || topicIds.trim() === '') {
       topics = await this.userTopicService.getUserTopics(loggedInUser);
@@ -106,7 +107,27 @@ export class PostService {
         },
       },
       {
-        $sort: { supports: -1 },
+        $lookup: {
+          from: 'userpostactions',
+          localField: 'postId',
+          foreignField: 'postId',
+          as: 'userActions',
+        },
+      },
+      {
+        $addFields: {
+          myActions: {
+            $filter: {
+              input: '$userActions',
+              cond: {
+                $eq: ['$$this.userId', user._id.toString()],
+              },
+            },
+          },
+        },
+      },
+      {
+        $sort: { supports: -1, createdDate: -1,  },
       },
       {
         $unset: ['posters', 'userActions', 'topicXrefs'],

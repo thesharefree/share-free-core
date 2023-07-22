@@ -116,6 +116,20 @@ export class PostService {
       },
       {
         $addFields: {
+          supports: {
+            $size: {
+              $filter: {
+                input: '$userActions',
+                cond: {
+                  $eq: ['$$this.supported', true],
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
           myActions: {
             $filter: {
               input: '$userActions',
@@ -209,6 +223,20 @@ export class PostService {
           localField: 'postId',
           foreignField: 'postId',
           as: 'userActions',
+        },
+      },
+      {
+        $addFields: {
+          supports: {
+            $size: {
+              $filter: {
+                input: '$userActions',
+                cond: {
+                  $eq: ['$$this.supported', true],
+                },
+              },
+            },
+          },
         },
       },
       {

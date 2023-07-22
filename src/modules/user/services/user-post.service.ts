@@ -63,6 +63,20 @@ export class UserPostService {
               $filter: {
                 input: '$userActions',
                 cond: {
+                  $eq: ['$$this.supported', true],
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          supports: {
+            $size: {
+              $filter: {
+                input: '$userActions',
+                cond: {
                   $eq: ['$$this.supports', true],
                 },
               },

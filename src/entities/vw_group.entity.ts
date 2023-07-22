@@ -50,7 +50,7 @@ export class GroupView extends Location {
 
   house: House;
 
-  myActions: UserGroupActions;
+  myActions: UserGroupActions[];
 
   stars: number;
 

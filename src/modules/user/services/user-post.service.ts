@@ -2,14 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { SFPost, PostDocument } from 'src/entities/post.entity';
+import { User, UserDocument } from 'src/entities/user.entity';
 
 @Injectable()
 export class UserPostService {
   constructor(
+    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     @InjectModel(SFPost.name) private readonly postModel: Model<PostDocument>,
   ) {}
 
   public async getUserPosts(loggedInUser: string): Promise<SFPost[]> {
+    const user = await this.userModel.findOne({ email: loggedInUser });
     const posts = await this.postModel.aggregate([
       {
         $match: {
@@ -36,7 +39,7 @@ export class UserPostService {
           localField: 'createdBy',
           foreignField: 'email',
           as: 'posters',
-        }
+        },
       },
       {
         $addFields: {
@@ -93,6 +96,26 @@ export class UserPostService {
           localField: 'topicIds',
           foreignField: '_id',
           as: 'topics',
+        },
+      },
+      {
+        $lookup: {
+          from: 'userpostactions',
+          localField: 'postId',
+          foreignField: 'postId',
+          as: 'userActions',
+        },
+      },
+      {
+        $addFields: {
+          myActions: {
+            $filter: {
+              input: '$userActions',
+              cond: {
+                $eq: ['$$this.userId', user._id.toString()],
+              },
+            },
+          },
         },
       },
       {

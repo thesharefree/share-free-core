@@ -127,12 +127,110 @@ export class PostService {
         },
       },
       {
-        $sort: { supports: -1, createdDate: -1,  },
+        $sort: { supports: -1, createdDate: -1 },
       },
       {
         $unset: ['posters', 'userActions', 'topicXrefs'],
       },
     ]);
+  }
+
+  public async getPost(
+    postId: string,
+    loggedInUser: string,
+  ): Promise<SFPost> {
+    const user = await this.userModel.findOne({ email: loggedInUser });
+    const posts = await this.postModel.aggregate([
+      {
+        $match: {
+          deleted: {
+            $ne: true,
+          },
+        },
+      },
+      {
+        $addFields: {
+          postId: {
+            $toString: '$_id',
+          },
+        },
+      },
+      {
+        $match: {
+          postId: postId,
+        },
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'createdBy',
+          foreignField: 'email',
+          as: 'posters',
+        },
+      },
+      {
+        $addFields: {
+          postedBy: {
+            $first: '$posters',
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: 'posttopicxrefs',
+          localField: 'postId',
+          foreignField: 'postId',
+          as: 'topicXrefs',
+        },
+      },
+      {
+        $addFields: {
+          topicIds: {
+            $map: {
+              input: '$topicXrefs',
+              in: {
+                $toObjectId: '$$this.topicId',
+              },
+            },
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: 'topics',
+          localField: 'topicIds',
+          foreignField: '_id',
+          as: 'topics',
+        },
+      },
+      {
+        $lookup: {
+          from: 'userpostactions',
+          localField: 'postId',
+          foreignField: 'postId',
+          as: 'userActions',
+        },
+      },
+      {
+        $addFields: {
+          myActions: {
+            $filter: {
+              input: '$userActions',
+              cond: {
+                $eq: ['$$this.userId', user._id.toString()],
+              },
+            },
+          },
+        },
+      },
+      {
+        $sort: { supports: -1, createdDate: -1 },
+      },
+      {
+        $unset: ['posters', 'userActions', 'topicXrefs'],
+      },
+    ]);
+    return posts[0];
   }
 
   public async createPost(post: SFPost, loggedInUser: string): Promise<SFPost> {

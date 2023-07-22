@@ -25,6 +25,13 @@ export class PostController {
     return this.postService.getAllPosts(topicIds, loggedInUser.email);
   }
 
+  @Auth('USER', 'ADMIN')
+  @Get('/:postId')
+  getPost(@Req() request: Request, @Param('postId') postId: string): Promise<SFPost> {
+    const loggedInUser = request['user'];
+    return this.postService.getPost(postId, loggedInUser.email);
+  }
+
   @Auth('USER')
   @Post('/create')
   createPost(@Req() request: Request, @Body() post: SFPost): Promise<SFPost> {

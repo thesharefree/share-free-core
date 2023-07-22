@@ -119,7 +119,7 @@ export class UserPostService {
         },
       },
       {
-        $sort: { supports: -1 },
+        $sort: { supports: -1, createdDate: -1 },
       },
       {
         $unset: ['posters', 'userActions', 'topicXrefs'],

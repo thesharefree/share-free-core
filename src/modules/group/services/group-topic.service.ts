@@ -30,18 +30,23 @@ export class GroupTopicService {
       throw new HttpException('Please select a maximum of 5 topics', 400);
     }
     await this.groupTopicXrefModel.deleteMany({ groupId: group._id });
-    for (const topicId of topicIds.split(',')) {
-      const topic = await this.topicModel.findById(topicId);
-      if (topic != null) {
-        const xrefResp = await this.groupTopicXrefModel.findOne({
-          groupId: group._id,
-          topicId: topicId,
-        });
-        if (xrefResp == null) {
-          const xref = this.newGroupTopicXref(group._id, topicId, loggedInUser);
-          const createdGroupTopicXref = new this.groupTopicXrefModel(xref);
-          await createdGroupTopicXref.save();
-        }
+    const topics = await this.topicModel
+      .find()
+      .where('_id')
+      .in(topicIds.split(','));
+    for (const topic of topics) {
+      const xrefResp = await this.groupTopicXrefModel.findOne({
+        groupId: group._id,
+        topicId: topic._id.toString(),
+      });
+      if (xrefResp == null) {
+        const xref = this.newGroupTopicXref(
+          group._id,
+          topic._id.toString(),
+          loggedInUser,
+        );
+        const createdGroupTopicXref = new this.groupTopicXrefModel(xref);
+        await createdGroupTopicXref.save();
       }
     }
   }

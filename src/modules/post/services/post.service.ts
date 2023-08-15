@@ -394,6 +394,7 @@ export class PostService {
 
   public async toggleReport(
     postId: string,
+    report: boolean,
     category: string,
     loggedInUser: string,
   ): Promise<void> {
@@ -411,7 +412,7 @@ export class PostService {
       newUserPostActions.userId = user._id;
       newUserPostActions.postId = postId;
       newUserPostActions.supported = false;
-      newUserPostActions.reported = true;
+      newUserPostActions.reported = report;
       newUserPostActions.reportCategory = category;
       newUserPostActions.active = true;
       newUserPostActions.createdBy = loggedInUser;
@@ -427,7 +428,7 @@ export class PostService {
       await this.userPostActionsModel.updateOne(
         { _id: userPostActions._id },
         {
-          reported: !userPostActions.reported,
+          reported: report,
           reportCategory: category,
           updatedBy: loggedInUser,
           updatedDate: new Date(),

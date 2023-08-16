@@ -11,6 +11,9 @@ export class UserPostActions extends Audit {
   postId: string;
 
   @Prop()
+  liked: boolean;
+
+  @Prop()
   supported: boolean;
 
   @Prop()

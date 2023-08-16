@@ -130,6 +130,20 @@ export class PostService {
       },
       {
         $addFields: {
+          likes: {
+            $size: {
+              $filter: {
+                input: '$userActions',
+                cond: {
+                  $eq: ['$$this.liked', true],
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
           myActions: {
             $filter: {
               input: '$userActions',
@@ -141,7 +155,7 @@ export class PostService {
         },
       },
       {
-        $sort: { supports: -1, createdDate: -1 },
+        $sort: { supports: -1, likes: -1, createdDate: -1 },
       },
       {
         $unset: ['posters', 'userActions', 'topicXrefs'],
@@ -241,6 +255,20 @@ export class PostService {
       },
       {
         $addFields: {
+          likes: {
+            $size: {
+              $filter: {
+                input: '$userActions',
+                cond: {
+                  $eq: ['$$this.liked', true],
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
           myActions: {
             $filter: {
               input: '$userActions',
@@ -252,7 +280,7 @@ export class PostService {
         },
       },
       {
-        $sort: { supports: -1, createdDate: -1 },
+        $sort: { supports: -1, liked: -1, createdDate: -1 },
       },
       {
         $unset: ['posters', 'userActions', 'topicXrefs'],
@@ -351,6 +379,48 @@ export class PostService {
     );
   }
 
+  public async toggleLike(
+    postId: string,
+    loggedInUser: string,
+  ): Promise<void> {
+    const user = await this.userModel.findOne({ email: loggedInUser });
+    const extPost = await this.postModel.findById(postId);
+    if (extPost == null) {
+      throw new HttpException('Invalid Post', 400);
+    }
+    var userPostActions = await this.userPostActionsModel.findOne({
+      userId: user._id,
+      postId: postId,
+    });
+    if (userPostActions == null) {
+      var newUserPostActions = new UserPostActions();
+      newUserPostActions.userId = user._id;
+      newUserPostActions.postId = postId;
+      newUserPostActions.liked = true;
+      newUserPostActions.supported = false;
+      newUserPostActions.reported = false;
+      newUserPostActions.active = true;
+      newUserPostActions.createdBy = loggedInUser;
+      newUserPostActions.createdDate = new Date();
+      newUserPostActions.updatedBy = loggedInUser;
+      newUserPostActions.updatedDate = new Date();
+      const createdUserPostActions = new this.userPostActionsModel(
+        newUserPostActions,
+      );
+      await createdUserPostActions.save();
+      return;
+    } else {
+      await this.userPostActionsModel.updateOne(
+        { _id: userPostActions._id },
+        {
+          liked: !userPostActions.liked,
+          updatedBy: loggedInUser,
+          updatedDate: new Date(),
+        },
+      );
+    }
+  }
+
   public async toggleSupport(
     postId: string,
     loggedInUser: string,
@@ -368,6 +438,7 @@ export class PostService {
       var newUserPostActions = new UserPostActions();
       newUserPostActions.userId = user._id;
       newUserPostActions.postId = postId;
+      newUserPostActions.liked = false;
       newUserPostActions.supported = true;
       newUserPostActions.reported = false;
       newUserPostActions.active = true;
@@ -411,6 +482,7 @@ export class PostService {
       var newUserPostActions = new UserPostActions();
       newUserPostActions.userId = user._id;
       newUserPostActions.postId = postId;
+      newUserPostActions.liked = false;
       newUserPostActions.supported = false;
       newUserPostActions.reported = report;
       newUserPostActions.reportCategory = category;

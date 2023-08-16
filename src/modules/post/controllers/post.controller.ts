@@ -67,8 +67,18 @@ export class PostController {
   }
 
   @Auth('USER')
+  @Put('/like/:postId')
+  toggleLike(
+    @Param('postId') postId: string,
+    @Req() request: Request,
+  ): Promise<void> {
+    const loggedInUser = request['user'];
+    return this.postService.toggleLike(postId, loggedInUser.email);
+  }
+
+  @Auth('USER')
   @Put('/support/:postId')
-  supportPost(
+  toggleSupport(
     @Param('postId') postId: string,
     @Req() request: Request,
   ): Promise<void> {
@@ -78,7 +88,7 @@ export class PostController {
 
   @Auth('USER')
   @Post('/report/:postId')
-  reportPost(
+  toggleReport(
     @Param('postId') postId: string,
     @Query('report') report: boolean,
     @Query('category') category: string,

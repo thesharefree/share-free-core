@@ -19,6 +19,8 @@ export class SFPost extends Location {
 
   supports: number;
 
+  likes: number;
+
   postedBy: User;
 
   myActions: UserPostActions[];

@@ -20,14 +20,20 @@ export class PostController {
 
   @Auth('USER', 'ADMIN')
   @Get('/all')
-  getAllPost(@Req() request: Request, @Query('topicIds') topicIds: string): Promise<SFPost[]> {
+  getAllPost(
+    @Req() request: Request,
+    @Query('topicIds') topicIds: string,
+  ): Promise<SFPost[]> {
     const loggedInUser = request['user'];
     return this.postService.getAllPosts(topicIds, loggedInUser.email);
   }
 
   @Auth('USER', 'ADMIN')
   @Get('/:postId')
-  getPost(@Req() request: Request, @Param('postId') postId: string): Promise<SFPost> {
+  getPost(
+    @Req() request: Request,
+    @Param('postId') postId: string,
+  ): Promise<SFPost> {
     const loggedInUser = request['user'];
     return this.postService.getPost(postId, loggedInUser.email);
   }
@@ -61,8 +67,18 @@ export class PostController {
   }
 
   @Auth('USER')
+  @Put('/like/:postId')
+  toggleLike(
+    @Param('postId') postId: string,
+    @Req() request: Request,
+  ): Promise<void> {
+    const loggedInUser = request['user'];
+    return this.postService.toggleLike(postId, loggedInUser.email);
+  }
+
+  @Auth('USER')
   @Put('/support/:postId')
-  supportPost(
+  toggleSupport(
     @Param('postId') postId: string,
     @Req() request: Request,
   ): Promise<void> {
@@ -72,12 +88,18 @@ export class PostController {
 
   @Auth('USER')
   @Post('/report/:postId')
-  reportPost(
+  toggleReport(
     @Param('postId') postId: string,
+    @Query('report') report: boolean,
     @Query('category') category: string,
     @Req() request: Request,
   ): Promise<void> {
     const loggedInUser = request['user'];
-    return this.postService.toggleReport(postId, category, loggedInUser.email);
+    return this.postService.toggleReport(
+      postId,
+      report,
+      category,
+      loggedInUser.email,
+    );
   }
 }

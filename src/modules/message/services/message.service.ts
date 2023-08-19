@@ -179,7 +179,7 @@ export class MessageService {
       )
       .map((user) => user.registrationToken);
     console.log(userTokens);
-    await this.notifyGeneral(
+    await this.notifyGroup(
       groupId,
       'Group Announcement',
       `Come join this support group: '${group.name}'`,
@@ -212,7 +212,7 @@ export class MessageService {
     }
   }
 
-  public async notifyGeneral(
+  public async notifyGroup(
     groupId: string,
     title: string,
     message: string,
@@ -224,6 +224,30 @@ export class MessageService {
           data: {
             type: 'GENERAL',
             groupId: groupId,
+            title: title,
+            message: message,
+          },
+          tokens: batch,
+        };
+        await defaultApp.messaging().sendMulticast(messagePayload);
+      }
+    } catch (ex) {
+      console.log(JSON.stringify(ex));
+    }
+  }
+
+  public async notifyPost(
+    postId: string,
+    title: string,
+    message: string,
+    userTokens: string[],
+  ) {
+    try {
+      for (let batch of getBatch(userTokens)) {
+        var messagePayload: messaging.MulticastMessage = {
+          data: {
+            type: 'GENERAL',
+            postId: postId,
             title: title,
             message: message,
           },

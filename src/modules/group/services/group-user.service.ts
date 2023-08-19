@@ -60,7 +60,7 @@ export class GroupUserService {
     );
     await createdUserGroupRequestXref.save();
     const owner = await this.userModel.findOne({ email: group.owner });
-    await this.messageService.notifyGeneral(
+    await this.messageService.notifyGroup(
       group._id.toString(),
       group.name,
       `${user.name} asked to join`,
@@ -160,7 +160,7 @@ export class GroupUserService {
       groupId: group._id,
       userId: user._id,
     });
-    await this.messageService.notifyGeneral(
+    await this.messageService.notifyGroup(
       group._id.toString(),
       group.name,
       `Join request accepted`,
@@ -188,7 +188,7 @@ export class GroupUserService {
       groupId: group._id,
       userId: user._id,
     });
-    await this.messageService.notifyGeneral(
+    await this.messageService.notifyGroup(
       group._id.toString(),
       group.name,
       `Join request rejected`,
@@ -249,7 +249,7 @@ export class GroupUserService {
     const xref = this.newUserGroupInviteXref(user._id, groupId, loggedInUser);
     const createdUserGroupInviteXref = new this.userGroupInviteXrefModel(xref);
     await createdUserGroupInviteXref.save();
-    await this.messageService.notifyGeneral(
+    await this.messageService.notifyGroup(
       group._id.toString(),
       group.name,
       `${owner.name} has invited you to join`,
@@ -363,7 +363,7 @@ export class GroupUserService {
       userId: user._id,
     });
     const owner = await this.userModel.findOne({ email: group.owner });
-    await this.messageService.notifyGeneral(
+    await this.messageService.notifyGroup(
       group._id.toString(),
       group.name,
       `${user.name} has joined`,
@@ -385,7 +385,7 @@ export class GroupUserService {
       userId: user._id,
     });
     const owner = await this.userModel.findOne({ email: group.owner });
-    await this.messageService.notifyGeneral(
+    await this.messageService.notifyGroup(
       group._id.toString(),
       group.name,
       `${user.name} rejected your invite`,
@@ -441,7 +441,7 @@ export class GroupUserService {
         updatedDate: new Date(),
       },
     );
-    await this.messageService.notifyGeneral(
+    await this.messageService.notifyGroup(
       group._id.toString(),
       group.name,
       xrefResp.isAdmin
@@ -471,7 +471,7 @@ export class GroupUserService {
       userId: userId,
       groupId: groupId,
     });
-    await this.messageService.notifyGeneral(
+    await this.messageService.notifyGroup(
       group._id.toString(),
       group.name,
       `You were removed from the group`,
@@ -493,7 +493,7 @@ export class GroupUserService {
       groupId: groupId,
     });
     const owner = await this.userModel.findOne({ email: group.owner });
-    await this.messageService.notifyGeneral(
+    await this.messageService.notifyGroup(
       group._id.toString(),
       group.name,
       `${user.name} left the group`,

@@ -394,8 +394,8 @@ export class PostService {
       );
     }
     if (liked) {
-      await this.messageService.notifyGeneral(
-        null,
+      await this.messageService.notifyPost(
+        postId,
         `${extPost.content.substring(0, 10)}..`,
         `${user.name} liked your post`,
         [user.registrationToken.toString()],
@@ -447,8 +447,8 @@ export class PostService {
       );
     }
     if (supported) {
-      await this.messageService.notifyGeneral(
-        null,
+      await this.messageService.notifyPost(
+        postId,
         `${extPost.content.substring(0, 10)}..`,
         `${user.name} liked your post`,
         [user.registrationToken.toString()],

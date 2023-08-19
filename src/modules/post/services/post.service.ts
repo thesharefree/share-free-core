@@ -361,6 +361,7 @@ export class PostService {
     if (extPost == null) {
       throw new HttpException('Invalid Post', 400);
     }
+    const postUser = await this.userModel.findOne({ email: extPost.createdBy });
     var userPostActions = await this.userPostActionsModel.findOne({
       userId: user._id,
       postId: postId,
@@ -398,7 +399,7 @@ export class PostService {
         postId,
         `${extPost.content.substring(0, 10)}..`,
         `${user.name} liked your post`,
-        [user.registrationToken.toString()],
+        [postUser.registrationToken.toString()],
       );
     }
     return await this.getPost(postId, loggedInUser);
@@ -414,6 +415,7 @@ export class PostService {
     if (extPost == null) {
       throw new HttpException('Invalid Post', 400);
     }
+    const postUser = await this.userModel.findOne({ email: extPost.createdBy });
     var userPostActions = await this.userPostActionsModel.findOne({
       userId: user._id,
       postId: postId,
@@ -451,7 +453,7 @@ export class PostService {
         postId,
         `${extPost.content.substring(0, 10)}..`,
         `${user.name} liked your post`,
-        [user.registrationToken.toString()],
+        [postUser.registrationToken.toString()],
       );
     }
     return await this.getPost(postId, loggedInUser);

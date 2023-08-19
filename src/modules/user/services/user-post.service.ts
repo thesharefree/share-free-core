@@ -72,6 +72,20 @@ export class UserPostService {
       },
       {
         $addFields: {
+          likes: {
+            $size: {
+              $filter: {
+                input: '$userActions',
+                cond: {
+                  $eq: ['$$this.liked', true],
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
           supports: {
             $size: {
               $filter: {

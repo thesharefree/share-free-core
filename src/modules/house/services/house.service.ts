@@ -72,7 +72,7 @@ export class HouseService {
     houseId: string,
     house: House,
     loggedInUser: User,
-  ): Promise<void> {
+  ): Promise<House> {
     const extHouse = await this.houseModel.findById(houseId);
     if (extHouse == null) {
       throw new HttpException('Invalid House', 400);
@@ -97,6 +97,7 @@ export class HouseService {
         updatedDate: new Date(),
       },
     );
+    return await this.getHouse(houseId);
   }
 
   public async uploadBanner(

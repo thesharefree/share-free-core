@@ -13,6 +13,8 @@ import {
   UserPostActionsDocument,
 } from 'src/entities/user-post-actions.entity';
 import { UserTopicService } from 'src/modules/user/services/user-topic.service';
+import { group } from 'console';
+import { MessageService } from 'src/modules/message/services/message.service';
 
 @Injectable()
 export class PostService {
@@ -25,6 +27,7 @@ export class PostService {
     @InjectModel(UserPostActions.name)
     private readonly userPostActionsModel: Model<UserPostActionsDocument>,
     private readonly userTopicService: UserTopicService,
+    private readonly messageService: MessageService,
   ) {}
 
   public async getAllPosts(
@@ -163,10 +166,7 @@ export class PostService {
     ]);
   }
 
-  public async getPost(
-    postId: string,
-    loggedInUser: string,
-  ): Promise<SFPost> {
+  public async getPost(postId: string, loggedInUser: string): Promise<SFPost> {
     const user = await this.userModel.findOne({ email: loggedInUser });
     const posts = await this.postModel.aggregate([
       {
@@ -330,34 +330,6 @@ export class PostService {
     }
   }
 
-  public async updatePost(
-    postId: string,
-    post: SFPost,
-    loggedInUser: string,
-  ): Promise<void> {
-    const extPost = await this.postModel.findById(postId);
-    if (extPost == null) {
-      throw new HttpException('Invalid Post', 400);
-    }
-    if (extPost.createdBy !== loggedInUser) {
-      throw new HttpException("You don't own this Post", 400);
-    }
-    await this.postModel.updateOne(
-      { _id: postId },
-      {
-        name: post.content,
-        latitude: post.latitude,
-        longitude: post.longitude,
-        city: post.city,
-        province: post.province,
-        country: post.country,
-        updatedBy: loggedInUser,
-        updatedDate: new Date(),
-      },
-    );
-    await this.updatePostTopics(postId, post.topicIds, loggedInUser);
-  }
-
   public async delete(postId: string, loggedInUser: User): Promise<void> {
     const extPost = await this.postModel.findById(postId);
     if (extPost == null) {
@@ -382,7 +354,8 @@ export class PostService {
   public async toggleLike(
     postId: string,
     loggedInUser: string,
-  ): Promise<void> {
+  ): Promise<SFPost> {
+    let liked = false;
     const user = await this.userModel.findOne({ email: loggedInUser });
     const extPost = await this.postModel.findById(postId);
     if (extPost == null) {
@@ -393,6 +366,7 @@ export class PostService {
       postId: postId,
     });
     if (userPostActions == null) {
+      liked = true;
       var newUserPostActions = new UserPostActions();
       newUserPostActions.userId = user._id;
       newUserPostActions.postId = postId;
@@ -408,8 +382,8 @@ export class PostService {
         newUserPostActions,
       );
       await createdUserPostActions.save();
-      return;
     } else {
+      liked = !userPostActions.liked;
       await this.userPostActionsModel.updateOne(
         { _id: userPostActions._id },
         {
@@ -419,12 +393,22 @@ export class PostService {
         },
       );
     }
+    if (liked) {
+      await this.messageService.notifyGeneral(
+        null,
+        `${extPost.content.substring(0, 10)}..`,
+        `${user.name} liked your post`,
+        [user.registrationToken.toString()],
+      );
+    }
+    return await this.getPost(postId, loggedInUser);
   }
 
   public async toggleSupport(
     postId: string,
     loggedInUser: string,
-  ): Promise<void> {
+  ): Promise<SFPost> {
+    let supported = false;
     const user = await this.userModel.findOne({ email: loggedInUser });
     const extPost = await this.postModel.findById(postId);
     if (extPost == null) {
@@ -435,6 +419,7 @@ export class PostService {
       postId: postId,
     });
     if (userPostActions == null) {
+      supported = true;
       var newUserPostActions = new UserPostActions();
       newUserPostActions.userId = user._id;
       newUserPostActions.postId = postId;
@@ -450,8 +435,8 @@ export class PostService {
         newUserPostActions,
       );
       await createdUserPostActions.save();
-      return;
     } else {
+      supported = !userPostActions.supported;
       await this.userPostActionsModel.updateOne(
         { _id: userPostActions._id },
         {
@@ -461,6 +446,15 @@ export class PostService {
         },
       );
     }
+    if (supported) {
+      await this.messageService.notifyGeneral(
+        null,
+        `${extPost.content.substring(0, 10)}..`,
+        `${user.name} liked your post`,
+        [user.registrationToken.toString()],
+      );
+    }
+    return await this.getPost(postId, loggedInUser);
   }
 
   public async toggleReport(
@@ -468,7 +462,7 @@ export class PostService {
     report: boolean,
     category: string,
     loggedInUser: string,
-  ): Promise<void> {
+  ): Promise<SFPost> {
     const user = await this.userModel.findOne({ email: loggedInUser });
     const extPost = await this.postModel.findById(postId);
     if (extPost == null) {
@@ -495,7 +489,6 @@ export class PostService {
         newUserPostActions,
       );
       await createdUserPostActions.save();
-      return;
     } else {
       await this.userPostActionsModel.updateOne(
         { _id: userPostActions._id },
@@ -507,5 +500,6 @@ export class PostService {
         },
       );
     }
+    return await this.getPost(postId, loggedInUser);
   }
 }

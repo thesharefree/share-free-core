@@ -5,7 +5,6 @@ import {
   Post,
   Body,
   Req,
-  Put,
   Query,
   Delete,
 } from '@nestjs/common';
@@ -56,7 +55,7 @@ export class PostController {
   }
 
   @Auth('USER')
-  @Put('/like/:postId')
+  @Post('/like/:postId')
   toggleLike(
     @Param('postId') postId: string,
     @Req() request: Request,
@@ -66,7 +65,7 @@ export class PostController {
   }
 
   @Auth('USER')
-  @Put('/support/:postId')
+  @Post('/support/:postId')
   toggleSupport(
     @Param('postId') postId: string,
     @Req() request: Request,

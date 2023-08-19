@@ -452,7 +452,7 @@ export class PostService {
       await this.messageService.notifyPost(
         postId,
         `${extPost.content.substring(0, 10)}..`,
-        `${user.name} liked your post`,
+        `${user.name} supported your post`,
         [postUser.registrationToken.toString()],
       );
     }

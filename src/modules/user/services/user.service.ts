@@ -69,7 +69,7 @@ export class UserService {
   }
 
   public async update(user: User, loggedInUser: User): Promise<User> {
-    const userResp = await this.userModel.findOne({ email: loggedInUser });
+    const userResp = await this.userModel.findOne({ email: loggedInUser.email });
     await this.userModel.updateOne(
       { _id: userResp._id },
       {

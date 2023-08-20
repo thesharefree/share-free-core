@@ -244,7 +244,7 @@ export class GroupService {
     file: UploadedFileMetadata,
     groupId: string,
     loggedInUser: string,
-  ): Promise<void> {
+  ): Promise<Group> {
     const group = await this.groupModel.findById(groupId);
     if (group.owner !== loggedInUser) {
       throw new HttpException("You don't own this Group", 400);
@@ -256,7 +256,6 @@ export class GroupService {
       originalname: 'group/images/' + group._id.toString() + '.' + extension,
     };
     const storageUrl = await this.azureStorage.upload(file);
-    console.log(JSON.stringify(storageUrl));
     await this.groupModel.updateOne(
       { _id: group._id },
       {
@@ -265,6 +264,7 @@ export class GroupService {
         updatedDate: new Date(),
       },
     );
+    return await this.getGroup(groupId);
   }
 
   public async toggle(groupId: string, loggedInUser: User): Promise<void> {

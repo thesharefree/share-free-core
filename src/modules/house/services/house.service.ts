@@ -119,7 +119,6 @@ export class HouseService {
       originalname: 'house/images/' + extHouse._id.toString() + '.' + extension,
     };
     const storageUrl = await this.azureStorage.upload(file);
-    console.log(JSON.stringify(storageUrl));
     await this.houseModel.updateOne(
       { _id: extHouse._id },
       {

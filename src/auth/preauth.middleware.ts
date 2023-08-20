@@ -14,7 +14,6 @@ export class PreauthMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: Function) {
     const token = req.headers.authorization;
     if (token != null && token != '') {
-      console.debug(token);
       defaultApp
         .auth()
         .verifyIdToken(token.replace('Bearer ', ''))
@@ -33,7 +32,6 @@ export class PreauthMiddleware implements NestMiddleware {
           // 2nd try: decodedToken[email/phone] == null
           if(userExist == null) {
             const firebaseUser = await defaultApp.auth().getUser(user.firebaseUserId);
-            console.debug('Firebase User', JSON.stringify(firebaseUser));
             user.email = firebaseUser.email ?? firebaseUser.providerData[0].email;
             user.phone = firebaseUser.phoneNumber ?? firebaseUser.providerData[0].phoneNumber;
             userExist = await this.userModel.findOne({
@@ -41,12 +39,10 @@ export class PreauthMiddleware implements NestMiddleware {
             });
           }
           if (userExist != null) {
-            console.debug('Existing user', userExist);
             user.email = userExist.email;
             user.phone = userExist.phone;
             user.roles = userExist.roles;
           } else {
-            console.log('baseUrl', req.url);
             if (isPasswordFlow || !req.url.includes('register')) {
               this.accessDenied(req.url, res);
               return;
@@ -54,7 +50,6 @@ export class PreauthMiddleware implements NestMiddleware {
               user.roles = ['USER'];
             }
           }
-          console.debug(user);
           req['user'] = user;
           next();
         })

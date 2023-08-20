@@ -14,7 +14,7 @@ export class GroupTopicController {
     @Req() request: Request,
     @Query('groupId') groupId: string,
     @Query('topicIds') topicIds: string,
-  ): Promise<void> {
+  ): Promise<Topic[]> {
     const loggedInUser = request['user'];
     return this.groupTopicService.assignTopics(
       groupId,

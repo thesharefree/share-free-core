@@ -32,7 +32,6 @@ export class UserService {
     const service = this;
     const userResp = await service.userModel.findOne({ email: user.email });
     if (userResp != null) {
-      console.error('User already exists');
       throw new HttpException('User already exists', 400);
     } else {
       defaultApp
@@ -45,12 +44,10 @@ export class UserService {
           disabled: false,
         })
         .then(async function (userRecord) {
-          console.log('User created in Firebase:', userRecord.uid);
           user.firebaseUserId = userRecord.uid;
           await service.register(user, loggedInUser);
         })
         .catch(function (error) {
-          console.error('Error creating user in Firebase:', error);
         });
     }
   }
@@ -68,11 +65,10 @@ export class UserService {
       user.updatedDate = new Date();
       const createdUser = new this.userModel(user);
       await createdUser.save();
-      console.log('User registered successfully');
     }
   }
 
-  public async update(user: User, loggedInUser: string): Promise<void> {
+  public async update(user: User, loggedInUser: User): Promise<User> {
     const userResp = await this.userModel.findOne({ email: loggedInUser });
     await this.userModel.updateOne(
       { _id: userResp._id },
@@ -87,10 +83,11 @@ export class UserService {
         city: user.city,
         province: user.province,
         country: user.country,
-        updatedBy: loggedInUser,
+        updatedBy: loggedInUser.email,
         updatedDate: new Date(),
       },
     );
+    return await this.getUser(loggedInUser);
   }
 
   public async addRole(role: string, loggedInUser: string): Promise<void> {
@@ -118,9 +115,9 @@ export class UserService {
 
   public async uploadPhoto(
     file: UploadedFileMetadata,
-    loggedInUser: string,
-  ): Promise<void> {
-    const userResp = await this.userModel.findOne({ email: loggedInUser });
+    loggedInUser: User,
+  ): Promise<User> {
+    const userResp = await this.userModel.findOne({ email: loggedInUser.email });
     const fileNameParts = file.originalname.split('.');
     const extension = fileNameParts[fileNameParts.length - 1];
     file = {
@@ -128,15 +125,15 @@ export class UserService {
       originalname: 'users/images/' + userResp._id.toString() + '.' + extension,
     };
     const storageUrl = await this.azureStorage.upload(file);
-    console.log(JSON.stringify(storageUrl));
     await this.userModel.updateOne(
       { _id: userResp._id },
       {
         photoUrl: storageUrl.split('?')[0],
-        updatedBy: loggedInUser,
+        updatedBy: loggedInUser.email,
         updatedDate: new Date(),
       },
     );
+    return await this.getUser(loggedInUser);
   }
 
   public async getAllUsers(): Promise<User[]> {
@@ -158,17 +155,18 @@ export class UserService {
 
   public async updateLanguages(
     languages: string,
-    loggedInUser: string,
-  ): Promise<void> {
-    const user = await this.userModel.findOne({ email: loggedInUser });
+    loggedInUser: User,
+  ): Promise<User> {
+    const user = await this.userModel.findOne({ email: loggedInUser.email });
     if (languages.split(',').length > 5) {
       throw new HttpException('Please select a maximum of 5 languages', 400);
     }
     await this.userModel.findByIdAndUpdate(user._id, {
       languages: languages.split(','),
-      updatedBy: loggedInUser,
+      updatedBy: loggedInUser.email,
       updatedDate: new Date(),
     });
+    return await this.getUser(loggedInUser);
   }
 
   public async toggleUserById(

@@ -100,7 +100,7 @@ export class GroupController {
         }),
     )
     file: UploadedFileMetadata,
-  ): Promise<void> {
+  ): Promise<Group> {
     const loggedInUser = request['user'];
     return this.groupService.uploadBanner(file, groupId, loggedInUser.email);
   }

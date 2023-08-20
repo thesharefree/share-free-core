@@ -21,7 +21,7 @@ export class GroupTopicService {
     groupId: string,
     topicIds: string,
     loggedInUser: string,
-  ): Promise<void> {
+  ): Promise<Topic[]> {
     const group = await this.groupModel.findById(groupId);
     if (group == null) {
       throw new HttpException('Invalid group', 400);
@@ -49,6 +49,7 @@ export class GroupTopicService {
         await createdGroupTopicXref.save();
       }
     }
+    return await this.getGroupTopics(groupId);
   }
 
   private newGroupTopicXref(

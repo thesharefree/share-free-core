@@ -37,6 +37,5 @@ export class HomeController {
       originalname: 'banda/badhiya.png',
     };
     const storageUrl = await this.azureStorage.upload(file);
-    console.log(JSON.stringify(storageUrl));
   }
 }

@@ -20,7 +20,7 @@ export class UserTopicService {
   public async assignTopics(
     topicIds: string,
     loggedInUser: string,
-  ): Promise<void> {
+  ): Promise<Topic[]> {
     const user = await this.userModel.findOne({ email: loggedInUser });
     if (topicIds.split(',').length > 5) {
       throw new HttpException('Please select a maximum of 5 topics', 400);
@@ -52,6 +52,7 @@ export class UserTopicService {
     } else {
       await this.userModel.findByIdAndUpdate(user._id, { onboarded: false });
     }
+    return this.getUserTopics(loggedInUser);
   }
 
   private newUserTopicXref(

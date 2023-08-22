@@ -13,7 +13,7 @@ export class UserTopicController {
   assignTopic(
     @Req() request: Request,
     @Query('topicIds') topicIds: string,
-  ): Promise<void> {
+  ): Promise<Topic[]> {
     const loggedInUser = request['user'];
     return this.userTopicService.assignTopics(topicIds, loggedInUser.email);
   }

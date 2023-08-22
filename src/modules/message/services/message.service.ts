@@ -152,7 +152,7 @@ export class MessageService {
     try {
       await defaultApp.messaging().sendMulticast(messagePayload);
     } catch (ex) {
-      console.log(JSON.stringify(ex));
+      console.error('FCM error conference', ex);
     }
   }
 
@@ -167,7 +167,6 @@ export class MessageService {
       return xref.userId;
     });
     excludeUserIds.push(owner._id.toString());
-    console.log(excludeUserIds);
     const users = await this.userModel.find({
       active: { $ne: false },
     });
@@ -178,8 +177,7 @@ export class MessageService {
           user.registrationToken != null,
       )
       .map((user) => user.registrationToken);
-    console.log(userTokens);
-    await this.notifyGeneral(
+    await this.notifyGroup(
       groupId,
       'Group Announcement',
       `Come join this support group: '${group.name}'`,
@@ -194,7 +192,6 @@ export class MessageService {
     let userTokens = users
       .filter((user) => user.registrationToken != null)
       .map((user) => user.registrationToken);
-    console.log(title, message);
     try {
       for (let batch of getBatch(userTokens)) {
         var messagePayload: messaging.MulticastMessage = {
@@ -208,11 +205,12 @@ export class MessageService {
         await defaultApp.messaging().sendMulticast(messagePayload);
       }
     } catch (ex) {
-      console.log(JSON.stringify(ex));
+      console.error('FCM error general', ex);
+      
     }
   }
 
-  public async notifyGeneral(
+  public async notifyGroup(
     groupId: string,
     title: string,
     message: string,
@@ -232,7 +230,31 @@ export class MessageService {
         await defaultApp.messaging().sendMulticast(messagePayload);
       }
     } catch (ex) {
-      console.log(JSON.stringify(ex));
+      console.error('FCM error group', ex);
+    }
+  }
+
+  public async notifyPost(
+    postId: string,
+    title: string,
+    message: string,
+    userTokens: string[],
+  ) {
+    try {
+      for (let batch of getBatch(userTokens)) {
+        var messagePayload: messaging.MulticastMessage = {
+          data: {
+            type: 'GENERAL',
+            postId: postId,
+            title: title,
+            message: message,
+          },
+          tokens: batch,
+        };
+        await defaultApp.messaging().sendMulticast(messagePayload);
+      }
+    } catch (ex) {
+      console.error('FCM error post', ex);
     }
   }
 }

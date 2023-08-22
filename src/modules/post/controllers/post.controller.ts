@@ -5,7 +5,6 @@ import {
   Post,
   Body,
   Req,
-  Put,
   Query,
   Delete,
 } from '@nestjs/common';
@@ -45,17 +44,6 @@ export class PostController {
     return this.postService.createPost(post, loggedInUser.email);
   }
 
-  @Auth('USER')
-  @Put('/update/:postId')
-  updatePost(
-    @Param('postId') postId: string,
-    @Req() request: Request,
-    @Body() post: SFPost,
-  ): Promise<void> {
-    const loggedInUser = request['user'];
-    return this.postService.updatePost(postId, post, loggedInUser.email);
-  }
-
   @Auth('USER', 'ADMIN')
   @Delete('/delete/:postId')
   deletePost(
@@ -67,21 +55,21 @@ export class PostController {
   }
 
   @Auth('USER')
-  @Put('/like/:postId')
+  @Post('/like/:postId')
   toggleLike(
     @Param('postId') postId: string,
     @Req() request: Request,
-  ): Promise<void> {
+  ): Promise<SFPost> {
     const loggedInUser = request['user'];
     return this.postService.toggleLike(postId, loggedInUser.email);
   }
 
   @Auth('USER')
-  @Put('/support/:postId')
+  @Post('/support/:postId')
   toggleSupport(
     @Param('postId') postId: string,
     @Req() request: Request,
-  ): Promise<void> {
+  ): Promise<SFPost> {
     const loggedInUser = request['user'];
     return this.postService.toggleSupport(postId, loggedInUser.email);
   }
@@ -93,7 +81,7 @@ export class PostController {
     @Query('report') report: boolean,
     @Query('category') category: string,
     @Req() request: Request,
-  ): Promise<void> {
+  ): Promise<SFPost> {
     const loggedInUser = request['user'];
     return this.postService.toggleReport(
       postId,

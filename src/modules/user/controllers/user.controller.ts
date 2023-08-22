@@ -50,9 +50,9 @@ export class UserController {
 
   @Auth('USER')
   @Put('/update')
-  update(@Req() request: Request, @Body() user: User): Promise<void> {
+  update(@Req() request: Request, @Body() user: User): Promise<User> {
     const loggedInUser = request['user'];
-    return this.userService.update(user, loggedInUser.email);
+    return this.userService.update(user, loggedInUser);
   }
 
   @Auth('USER', 'ADMIN')
@@ -80,9 +80,9 @@ export class UserController {
         }),
     )
     file: UploadedFileMetadata,
-  ): Promise<void> {
+  ): Promise<User> {
     const loggedInUser = request['user'];
-    return this.userService.uploadPhoto(file, loggedInUser.email);
+    return this.userService.uploadPhoto(file, loggedInUser);
   }
 
   @Auth('ADMIN')
@@ -102,9 +102,9 @@ export class UserController {
   updateGroupLanguages(
     @Req() request: Request,
     @Query('languages') languages: string,
-  ): Promise<void> {
+  ): Promise<User> {
     const loggedInUser = request['user'];
-    return this.userService.updateLanguages(languages, loggedInUser.email);
+    return this.userService.updateLanguages(languages, loggedInUser);
   }
 
   @Auth('ADMIN', 'USER')

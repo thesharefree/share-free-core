@@ -46,7 +46,7 @@ export class GroupController {
     @Param('groupId') groupId: string,
     @Req() request: Request,
     @Body() group: Group,
-  ): Promise<void> {
+  ): Promise<Group> {
     const loggedInUser = request['user'];
     return this.groupService.updateGroup(groupId, group, loggedInUser.email);
   }
@@ -57,7 +57,7 @@ export class GroupController {
     @Param('groupId') groupId: string,
     @Query('languages') languages: string,
     @Req() request: Request,
-  ): Promise<void> {
+  ): Promise<Group> {
     const loggedInUser = request['user'];
     return this.groupService.updateGroupLanguages(
       groupId,
@@ -72,7 +72,7 @@ export class GroupController {
     @Param('groupId') groupId: string,
     @Req() request: Request,
     @Body() group: Group,
-  ): Promise<void> {
+  ): Promise<Group> {
     const loggedInUser = request['user'];
     return this.groupService.updateGroupSchedule(
       groupId,
@@ -100,7 +100,7 @@ export class GroupController {
         }),
     )
     file: UploadedFileMetadata,
-  ): Promise<void> {
+  ): Promise<Group> {
     const loggedInUser = request['user'];
     return this.groupService.uploadBanner(file, groupId, loggedInUser.email);
   }

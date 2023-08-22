@@ -43,7 +43,7 @@ export class HouseController {
     @Param('houseId') houseId: string,
     @Req() request: Request,
     @Body() house: House,
-  ): Promise<void> {
+  ): Promise<House> {
     const loggedInUser = request['user'];
     return this.houseService.updateHouse(houseId, house, loggedInUser);
   }
@@ -67,7 +67,7 @@ export class HouseController {
         }),
     )
     file: UploadedFileMetadata,
-  ): Promise<void> {
+  ): Promise<House> {
     const loggedInUser = request['user'];
     return this.houseService.uploadBanner(file, houseId, loggedInUser);
   }

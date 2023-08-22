@@ -6,7 +6,6 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Group, GroupDocument } from 'src/entities/group.entity';
-import { House, HouseDocument } from 'src/entities/house.entity';
 import {
   UserGroupActions,
   UserGroupActionsDocument,
@@ -125,7 +124,7 @@ export class GroupService {
     groupId: string,
     group: Group,
     loggedInUser: string,
-  ): Promise<void> {
+  ): Promise<Group> {
     const extGroup = await this.groupModel.findById(groupId);
     if (extGroup == null) {
       throw new HttpException('Invalid Group', 400);
@@ -171,13 +170,14 @@ export class GroupService {
         updatedDate: new Date(),
       },
     );
+    return await this.getGroup(groupId);
   }
 
   public async updateGroupSchedule(
     groupId: string,
     group: Group,
     loggedInUser: string,
-  ): Promise<void> {
+  ): Promise<Group> {
     const user = await this.userModel.findOne({ email: loggedInUser });
     const extGroup = await this.groupModel.findById(groupId);
     if (extGroup == null) {
@@ -204,13 +204,14 @@ export class GroupService {
         updatedDate: new Date(),
       },
     );
+    return await this.getGroup(groupId);
   }
 
   public async updateGroupLanguages(
     groupId: string,
     languages: string,
     loggedInUser: string,
-  ): Promise<void> {
+  ): Promise<Group> {
     const user = await this.userModel.findOne({ email: loggedInUser });
     const extGroup = await this.groupModel.findById(groupId);
     if (extGroup == null) {
@@ -236,13 +237,14 @@ export class GroupService {
         updatedDate: new Date(),
       },
     );
+    return await this.getGroup(groupId);
   }
 
   public async uploadBanner(
     file: UploadedFileMetadata,
     groupId: string,
     loggedInUser: string,
-  ): Promise<void> {
+  ): Promise<Group> {
     const group = await this.groupModel.findById(groupId);
     if (group.owner !== loggedInUser) {
       throw new HttpException("You don't own this Group", 400);
@@ -254,7 +256,6 @@ export class GroupService {
       originalname: 'group/images/' + group._id.toString() + '.' + extension,
     };
     const storageUrl = await this.azureStorage.upload(file);
-    console.log(JSON.stringify(storageUrl));
     await this.groupModel.updateOne(
       { _id: group._id },
       {
@@ -263,6 +264,7 @@ export class GroupService {
         updatedDate: new Date(),
       },
     );
+    return await this.getGroup(groupId);
   }
 
   public async toggle(groupId: string, loggedInUser: User): Promise<void> {

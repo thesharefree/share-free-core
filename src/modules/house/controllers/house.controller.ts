@@ -67,7 +67,7 @@ export class HouseController {
         }),
     )
     file: UploadedFileMetadata,
-  ): Promise<void> {
+  ): Promise<House> {
     const loggedInUser = request['user'];
     return this.houseService.uploadBanner(file, houseId, loggedInUser);
   }

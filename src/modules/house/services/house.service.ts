@@ -104,7 +104,7 @@ export class HouseService {
     file: UploadedFileMetadata,
     houseId: string,
     loggedInUser: User,
-  ): Promise<void> {
+  ): Promise<House> {
     const extHouse = await this.houseModel.findById(houseId);
     if (
       extHouse.owner !== loggedInUser.email &&
@@ -127,6 +127,7 @@ export class HouseService {
         updatedDate: new Date(),
       },
     );
+    return await this.getHouse(houseId);
   }
 
   public async toggle(houseId: string, loggedInUser: User): Promise<void> {

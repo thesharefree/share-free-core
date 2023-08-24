@@ -91,7 +91,7 @@ export class UserPostService {
               $filter: {
                 input: '$userActions',
                 cond: {
-                  $eq: ['$$this.supports', true],
+                  $eq: ['$$this.supported', true],
                 },
               },
             },
@@ -124,14 +124,6 @@ export class UserPostService {
           localField: 'topicIds',
           foreignField: '_id',
           as: 'topics',
-        },
-      },
-      {
-        $lookup: {
-          from: 'userpostactions',
-          localField: 'postId',
-          foreignField: 'postId',
-          as: 'userActions',
         },
       },
       {

@@ -46,6 +46,9 @@ export class GroupView extends Location {
   @Prop()
   callStarted: Date;
 
+  @Prop()
+  callOffer: string;
+
   topics: Topic[];
 
   house: House;

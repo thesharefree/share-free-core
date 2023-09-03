@@ -58,6 +58,7 @@ export class GroupService {
           {
             callInProgress: false,
             callStarted: null,
+            callOffer: null,
           },
         );
         group.callInProgress = false;

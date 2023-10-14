@@ -10,9 +10,9 @@ export class QueryController {
 
   @Auth('ADMIN')
   @Post('/create')
-  createQuery(@Req() request: Request, @Body() query: Query): void {
+  createQuery(@Req() request: Request, @Body() query: Query): Promise<Query> {
     const loggedInUser = request['user'];
-    this.queryService.createQuery(query, loggedInUser.email);
+    return this.queryService.createQuery(query, loggedInUser.email);
   }
 
   @Get('/all')

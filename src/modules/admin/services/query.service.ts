@@ -1,6 +1,6 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { Query, QueryDocument } from 'src/entities/query.entity';
 import { TopicQueryXref, TopicQueryXrefDocument } from 'src/entities/topic-query-xref.entity';
 
@@ -23,15 +23,15 @@ export class QueryService {
     return await this.queryModel.find();
   }
 
-  public async createQuery(query: Query, loggedInUser: string): Promise<void> {
-    query['_id'] = null;
+  public async createQuery(query: Query, loggedInUser: string): Promise<Query> {
+    query['_id'] = new mongoose.Types.ObjectId();
     query.createdBy = loggedInUser;
     query.createdDate = new Date();
     query.active = true;
     query.updatedBy = loggedInUser;
     query.updatedDate = new Date();
     const createdQuery = new this.queryModel(query);
-    await createdQuery.save();
+    return await createdQuery.save();
   }
 
   public async updateQuery(

@@ -4,7 +4,7 @@ import {
 } from '@nestjs/azure-storage';
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { Group, GroupDocument } from 'src/entities/group.entity';
 import {
   UserGroupActions,
@@ -108,7 +108,7 @@ export class GroupService {
         );
       }
     }
-    group['_id'] = null;
+    group['_id'] = new mongoose.Types.ObjectId();
     group.owner = loggedInUser;
     group.active = true;
     group.createdBy = loggedInUser;

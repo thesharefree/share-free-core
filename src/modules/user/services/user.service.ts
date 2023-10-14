@@ -4,7 +4,7 @@ import {
 } from '@nestjs/azure-storage';
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { Role, User, UserDocument } from 'src/entities/user.entity';
 import { defaultApp } from '../../../auth/firebaseAdmin';
 
@@ -52,19 +52,19 @@ export class UserService {
     }
   }
 
-  public async register(user: User, loggedInUser: string): Promise<void> {
+  public async register(user: User, loggedInUser: string): Promise<User> {
     const userResp = await this.userModel.findOne({ email: user.email });
     if (userResp != null) {
       throw new HttpException('User with this email already exists', 400);
     } else {
-      user['_id'] = null;
+      user['_id'] = new mongoose.Types.ObjectId();
       user.active = true;
       user.createdBy = loggedInUser;
       user.createdDate = new Date();
       user.updatedBy = loggedInUser;
       user.updatedDate = new Date();
       const createdUser = new this.userModel(user);
-      await createdUser.save();
+      return await createdUser.save();
     }
   }
 

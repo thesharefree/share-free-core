@@ -4,7 +4,7 @@ import {
 } from '@nestjs/azure-storage';
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { Group, GroupDocument } from 'src/entities/group.entity';
 import { House, HouseDocument } from 'src/entities/house.entity';
 import { Role, User, UserDocument } from 'src/entities/user.entity';
@@ -57,7 +57,7 @@ export class HouseService {
     if (owenedHouses.length >= 10) {
       throw new HttpException('You cannot own more than 10 houses', 400);
     }
-    house['_id'] = null;
+    house['_id'] = new mongoose.Types.ObjectId();
     house.active = true;
     house.createdBy = loggedInUser;
     house.createdDate = new Date();

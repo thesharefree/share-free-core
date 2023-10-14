@@ -16,7 +16,7 @@ export class TopicController {
 
   @Auth('ADMIN')
   @Post('/create')
-  createTopic(@Req() request: Request, @Body() topic: Topic): Promise<void> {
+  createTopic(@Req() request: Request, @Body() topic: Topic): Promise<Topic> {
     const loggedInUser = request['user'];
     return this.topicService.createTopic(topic, loggedInUser.email);
   }

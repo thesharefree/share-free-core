@@ -33,7 +33,7 @@ export class UserController {
 
   @Auth('USER')
   @Post('/register')
-  createUser(@Req() request: Request, @Body() user: User): Promise<void> {
+  createUser(@Req() request: Request, @Body() user: User): Promise<User> {
     const loggedInUser = request['user'];
     user.roles = [Role.USER];
     user.firebaseUserId = loggedInUser.firebaseUserId;

@@ -1,6 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { GroupTopicXref, GroupTopicXrefDocument } from 'src/entities/group-topic-xref.entity';
 import { TopicQueryXref, TopicQueryXrefDocument } from 'src/entities/topic-query-xref.entity';
 import { Topic, TopicDocument } from 'src/entities/topic.entity';
@@ -25,15 +25,15 @@ export class TopicService {
     return await this.topicModel.find();
   }
 
-  public async createTopic(topic: Topic, loggedInUser: string): Promise<void> {
-    topic['_id'] = null;
+  public async createTopic(topic: Topic, loggedInUser: string): Promise<Topic> {
+    topic['_id'] = new mongoose.Types.ObjectId();
     topic.active = true;
     topic.createdBy = loggedInUser;
     topic.createdDate = new Date();
     topic.updatedBy = loggedInUser;
     topic.updatedDate = new Date();
     const createdTopic = new this.topicModel(topic);
-    await createdTopic.save();
+    return await createdTopic.save();
   }
 
   public async toggleTopicById(
